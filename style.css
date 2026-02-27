@@ -1,0 +1,50 @@
+/*GENERAL*/
+@import url('https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:ital,wght@0,400..700;1,400..700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: rgb(128, 0, 32);
+    color: rgb(245, 245, 220);
+    font-family: "Ibarra Real Nova", serif;
+}
+html {
+    scroll-behavior: smooth;
+}
+p {
+    color: rgb(245, 245, 220);
+}
+
+/*SECTIONS*/
+section {
+    padding-top: 8vh;
+    height: 96vh;
+    margin: 0 10rem;
+    box-sizing: border-box;
+    min-height: fit-content;
+}
+
+.section-container {
+    display: flex;
+}
+
+/*PROFILES*/
+#hero {
+    display: flex;
+    justify-content: center;
+    gap: 5rem;
+}
+
+.hero_pic-container {
+    display: flex;
+    height: 400px;
+    width: 400px;
+    margin: auto 0;
+}
+
+.hero_text {
+    align-self: center;
+    text-align: center;
+}

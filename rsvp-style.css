@@ -39,11 +39,25 @@ section {
 
 #rsvp {
     text-align: center;
+    display: flex;
     align-items: center;
+    flex-direction: column;
+}
+
+h1 {
+    font-family: "Ibarra Real Nova", serif;
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgb(187, 134, 56);
 }
 
 .rsvp-text {
     padding: 10px 10%;
+}
+
+h2 {
+    font-family: "Frunchy Sage";
+    font-size: 4rem;
 }
 
 .btn-container{

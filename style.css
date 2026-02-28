@@ -1,5 +1,9 @@
 /*GENERAL*/
 @import url('https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Ephesis&family=Ibarra+Real+Nova:ital,wght@0,400..700;1,400..700&display=swap');
+@font-face {
+    font-family: "Frunchy Sage";
+    src: url(frunchy-sage.ttf);
+}
 
 * {
     margin: 0;
@@ -16,8 +20,9 @@ html {
 }
 
 h1 {
-    font-family: "Elsie Swash Caps", serif;
-    font-weight: 400;
+    /* font-family: "Elsie Swash Caps", serif;
+    font-weight: 400; */
+    font-family: "Frunchy Sage";
 }
 
 p {
@@ -59,30 +64,31 @@ section {
 }
 
 .hero-col-2 h1 {
-    font-size: 7rem;
-    margin: -2rem;
+    font-size: 12rem;
+    margin: -6.5rem;
 }
 
 .hero_h1 {
-    padding-top: 4.5rem;
+    padding-top: 8rem;
 }
 
 .hero_joiner {
     font-size: 6rem;
     font-family: "Ephesis", cursive;
-    transform: translateY(-120%);
+    transform: translateY(-110%);
     color: rgb(187, 134, 56);
-    margin-bottom: -5.7rem;
+    margin-bottom: -4.5rem;
 }
 
 .hero-col-2 h3 {
-    font-size: 1.5rem;
-    margin-bottom: 0.7rem;
+    font-family: "Frunchy Sage";
+    font-size: 2.5rem;
+    margin-bottom: 0.6rem;
 }
 
 .hero-col-2 h4 {
     font-style: italic;
-    margin-bottom: 0.9rem;
+    margin-bottom: 1.5rem;
 }
 
 .btn-container{
@@ -143,8 +149,9 @@ section {
 }
 
 .date-col-2 h1 {
-    font-size: 5rem;
-    line-height: 1;
+    font-family: "Frunchy Sage";
+    font-size: 6.75rem;
+    line-height: 0.65;
 }
 
 .date-col-2 h3 {

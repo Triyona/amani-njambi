@@ -1,0 +1,71 @@
+/*GENERAL*/
+@import url('https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Ephesis&family=Ibarra+Real+Nova:ital,wght@0,400..700;1,400..700&display=swap');
+@font-face {
+    font-family: "Frunchy Sage";
+    src: url(frunchy-sage.ttf);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: rgb(128, 0, 32);
+    color: rgb(245, 245, 220);
+    font-family: "Ibarra Real Nova", serif;
+    box-sizing: border-box;
+}
+html {
+    scroll-behavior: smooth;
+}
+
+h1 {
+    /* font-family: "Elsie Swash Caps", serif;
+    font-weight: 400; */
+    font-family: "Frunchy Sage";
+}
+
+p {
+    color: rgb(245, 245, 220);
+    font-size: 1.3rem;
+}
+
+/*SECTIONS*/
+section {
+    padding: 60px 7%;
+}
+
+/*RSVP*/
+
+#rsvp {
+    text-align: center;
+    align-items: center;
+}
+
+.rsvp-text {
+    padding: 10px 10%;
+}
+
+.btn-container{
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    display: block;
+    transition: all 300ms ease;
+    width: 15rem;
+    padding: 0.55rem;
+    border-radius: 0.45rem;
+    text-decoration: none;
+    background-color: rgb(187, 134, 56);
+    color: rgb(245, 245, 220);
+    font-weight: 700;
+    justify-content: center;
+}
+.btn:hover {
+    background: rgb(245, 245, 220);
+    text-decoration: none;
+    color: rgb(128, 0, 32);
+}

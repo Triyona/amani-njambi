@@ -170,9 +170,12 @@ section {
 
 .location-col-1{
     flex-basis: 55%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.location-col-1 h1 {
+#location h1 {
     font-size: 7.5rem;
     line-height: 0.6;
     padding-bottom: 1.5rem;
@@ -180,8 +183,8 @@ section {
 
 iframe {
     border-radius: 0.7rem;
-    width: 86%;
-    height: 400px;
+    width: 500px;
+    height: 500px;
     border: rgb(187, 134, 56) 0.3rem solid;
 }
 

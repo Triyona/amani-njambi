@@ -162,3 +162,34 @@ section {
     width: 60%;
 }
 
+/*LOCATION*/
+#location {
+    background-color: rgb(128, 0, 32);
+}
+
+.location-col-1{
+    flex-basis: 55%;
+}
+
+.location-col-1 h1 {
+    font-size: 7.5rem;
+    line-height: 0.6;
+    padding-bottom: 1.5rem;
+}
+
+iframe {
+    border-radius: 0.7rem;
+    width: 86%;
+    height: 400px;
+    border: rgb(187, 134, 56) 0.3rem solid;
+}
+
+.location-col-2 {
+    flex-basis: 45%;
+    text-align: center;
+    padding-top: 3rem;
+}
+
+.location-col-2 img {
+    width: 80%;
+}

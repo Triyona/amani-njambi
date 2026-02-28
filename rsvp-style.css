@@ -75,12 +75,12 @@ h2 {
 }
 
 .text-input {
-    width: 30rem;
+    width: 20rem;
     border: 0;
     outline: none;
     background: rgb(245, 245, 220);
-    padding: 15px;
-    margin: 15px 0;
+    padding: 10px;
+    margin: 10px 0;
     color: rgb(128, 0, 32);
     font-size: 18px;
     border-radius: 6px;
@@ -95,6 +95,7 @@ h2 {
 }
 
 .btn.btn2 {
+    margin-top: 10px;
     display: block;
     transition: all 300ms ease;
     width: 15rem;
@@ -110,4 +111,5 @@ h2 {
     background: rgb(245, 245, 220);
     text-decoration: none;
     color: rgb(128, 0, 32);
+    cursor: pointer;
 }

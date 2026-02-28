@@ -27,6 +27,7 @@ h1 {
 
 p {
     color: rgb(245, 245, 220);
+    font-size: 1.3rem;
 }
 
 /*SECTIONS*/
@@ -86,7 +87,7 @@ section {
     margin-bottom: 0.6rem;
 }
 
-.hero-col-2 h4 {
+.hero-col-2 p {
     font-style: italic;
     margin-bottom: 1.5rem;
 }
@@ -187,9 +188,41 @@ iframe {
 .location-col-2 {
     flex-basis: 45%;
     text-align: center;
-    padding-top: 3rem;
+    padding-top: 2rem;
 }
 
+/* .location-text {
+    width: 60%;
+    border: rgb(245, 245, 220) 0.25rem solid;
+    padding: 5% 0;
+} */
+
+.location-col-2 h2 {
+    font-size: 2rem;
+}
+
+.location-h3 {
+    padding-top: 3%;
+}
 .location-col-2 img {
+    padding: 5% 0;
     width: 80%;
+}
+
+/*SUPPORT*/
+
+#support {
+    background-color: rgb(245, 245, 220);
+}
+
+/*GIFT*/
+
+#gift {
+    background-color: rgb(128, 0, 32);
+}
+
+/*END*/
+
+#end {
+
 }

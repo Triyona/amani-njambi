@@ -213,7 +213,28 @@ iframe {
 
 #support {
     background-color: rgb(245, 245, 220);
+    color: rgb(128, 0, 32);
+    text-align: center;
 }
+
+.support-container img {
+    width: 20%;
+}
+
+.support-container h1 {
+    font-size: 6rem;
+    margin-bottom: -2rem;
+}
+
+.support-p {
+    color: rgb(128, 0, 32);
+}
+
+.support-text-2 {
+    padding-top: 2rem;
+    column-count: 2;
+}
+
 
 /*GIFT*/
 

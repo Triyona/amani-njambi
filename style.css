@@ -221,6 +221,13 @@ iframe {
     background-color: rgb(128, 0, 32);
 }
 
+.gift-text {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
 /*END*/
 
 #end {

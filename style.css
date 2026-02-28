@@ -224,5 +224,18 @@ iframe {
 /*END*/
 
 #end {
+    width: 100%;
+    height: 90vh;
+    background-image: linear-gradient(rgb(0,0,0, .5), rgb(0,0,0, .5) ), url(Assets/IMG-20260125-WA0017.jpg);
+    background-size: cover;
+    background-position: center;
+}
 
+.end-container {
+    text-align: center;
+    padding-top: 30%;
+}
+
+.end-h1 {
+    font-size: 7rem;
 }

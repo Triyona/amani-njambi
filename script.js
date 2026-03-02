@@ -10,14 +10,13 @@ document.addEventListener('DOMContentLoaded',() => {
 
     let currentStep = 0;
 
-    setInterval(() => {
+    const updateButtons = () => {
+        firstButton.style.display  = currentStep === 0 ? 'inline-block' : 'none';
+        nextButton.style.display   = currentStep === 1 ? 'inline-block' : 'none';
+        submitButton.style.display = currentStep === 2 ? 'inline-block' : 'none';
+    };
 
-        currentStep++;
-
-        if(currentStep > stepIndicators.length - 1){
-            currentStep = 0
-        }
-
+    const updateProgress = () => {
         let width = currentStep / (stepIndicators.length - 1);
         progress.style.transform = `scaleX(${width})`;
 
@@ -26,6 +25,30 @@ document.addEventListener('DOMContentLoaded',() => {
             indicator.classList.toggle("done", currentStep > index)
         })
 
-    }, 2000);
+        updateButtons();
+    }
 
+    //*event listeners
+
+    firstButton.addEventListener('click', () => {
+        currentStep++;
+        updateProgress();
+    });
+
+    nextButton.addEventListener('click', () => {
+        currentStep++;
+        updateProgress();
+    });
+
+    submitButton.addEventListener('click', () => {
+    currentStep = 0;     // reset to step 1
+    updateProgress();    // update progress bar + buttons
+    });
+
+    // setInterval(() => {
+    //     currentStep++;
+    //     if(currentStep > stepIndicators.length - 1){
+    //         currentStep = 0
+    //     }
+    // }, 2000);
 });

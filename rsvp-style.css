@@ -10,7 +10,10 @@
     padding: 0;
 }
 body {
-    background-color: rgb(128, 0, 32);
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    background-color: rgb(245, 245, 220);
     color: rgb(245, 245, 220);
     font-family: "Ibarra Real Nova", serif;
     box-sizing: border-box;
@@ -20,9 +23,12 @@ html {
 }
 
 h1 {
-    /* font-family: "Elsie Swash Caps", serif;
-    font-weight: 400; */
     font-family: "Frunchy Sage";
+    font-family: "Ibarra Real Nova", serif;
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgb(187, 134, 56);
+    text-align: center;
 }
 
 p {
@@ -30,26 +36,16 @@ p {
     font-size: 1.3rem;
 }
 
-/*SECTIONS*/
-section {
-    padding: 60px 7%;
+:root {
+    --main-color: #bb8638;
+    --dark-color: #500014;
+    --step-color: #f5f5dc;
+    --step-size: 32px;
+    /* --steps: 4; */
+    --progress-width: calc((var(--steps) - 1) / var(--steps) * 100%);
 }
 
 /*RSVP*/
-
-#rsvp {
-    text-align: center;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-}
-
-h1 {
-    font-family: "Ibarra Real Nova", serif;
-    font-size: 4rem;
-    font-weight: 900;
-    color: rgb(187, 134, 56);
-}
 
 .rsvp-header i {
     color: rgb(187, 134, 56);
@@ -59,19 +55,117 @@ h1 {
     top: 68px;
 }
 
+.form-wizard {
+    background-color: rgb(128, 0, 32);
+    padding: 32px;
+    border-radius: 8px;
+    width: min(600px, 80%);
+    box-shadow: 0 4px 16px rgba(167, 21, 84, 8.1);
+    /* display: flex;
+    flex-direction: column;
+    align-items: center; */
+}
+
+/* PROGRESS */
+.progress-container {
+    position: relative;
+}
+
+.progress-container::before {
+    content: "";
+    height: 4px;
+    width: var(--progress-width);
+    background-color: var(--step-color);
+    position: absolute;
+    top: calc(var(--step-size) / 2);
+    left: 50%;
+    translate: -50% -50%;
+}
+
+.progress-container .progress {
+    height: 4px;
+    width: var(--progress-width);
+    background-color: var(--main-color);
+    position: absolute;
+    top: calc(var(--step-size) / 2);
+    left: 50%;
+    translate: -50% -50%;
+    z-index: 2;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: 0.3s;
+}
+
+.progress-container ol {
+    list-style-type: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    counter-reset: step-number;
+    position: relative;
+    z-index: 3;
+}
+
+.progress-container li {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--step-color);
+    transition: 0.3s linear 0.3s;
+}
+
+.progress-container li::before {
+    counter-increment: step-number;
+    content: counter(step-number);
+    background-color: var(--step-color);
+    width: var(--step-size);
+    height: var(--step-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: rgb(128, 0, 32);
+    font-weight: 600;
+}
+
+.progress-container li.done::before{
+    background-color: var(--main-color);
+    color: #fff;
+}
+
+.progress-container li.current::before{
+    background-color: var(--main-color);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(245, 176, 76, 0.25);
+}
+
+/* FORM */
+
 .rsvp-text {
-    padding: 10px 10%;
+    max-width: 28rem;
+    margin: 0 auto;
+    text-align: center;
+    padding: 1rem 0;
 }
 
 h2 {
     font-family: "Frunchy Sage";
     font-size: 4rem;
+    line-height: 0.8;
 }
 
-.rsvp-form form {
+/* .rsvp-form form {
     display: flex;
     flex-direction: column;
     align-items: center;
+} */
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    place-items: center;
 }
 
 .text-input {
@@ -87,11 +181,9 @@ h2 {
 }
 
 .btn {
-    /* display: flex;
-    justify-content: center;
-    align-content: center;
-    gap: 1rem; */
     border: 0;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 .btn.btn2 {
@@ -105,11 +197,15 @@ h2 {
     background-color: rgb(187, 134, 56);
     color: rgb(245, 245, 220);
     font-weight: 700;
-    /* justify-content: center; */
 }
 .btn:hover {
     background: rgb(245, 245, 220);
     text-decoration: none;
     color: rgb(128, 0, 32);
     cursor: pointer;
+}
+
+.controls {
+    display: grid;
+    place-items: center;
 }

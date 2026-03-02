@@ -182,11 +182,9 @@ h2 {
 
 .btn {
     border: 0;
-    grid-row: 1;
-    grid-column: 1;
 }
 
-.btn.btn2 {
+button {
     margin-top: 10px;
     display: block;
     transition: all 300ms ease;
@@ -198,14 +196,28 @@ h2 {
     color: rgb(245, 245, 220);
     font-weight: 700;
 }
-.btn:hover {
+button:active, button:hover {
     background: rgb(245, 245, 220);
     text-decoration: none;
     color: rgb(128, 0, 32);
     cursor: pointer;
 }
 
+button:disabled {
+    opacity: 0.8;
+}
+
+/* .next-btn,
+.submit-btn {
+    display: none;
+} */
+
 .controls {
     display: grid;
     place-items: center;
 }
+
+/* .controls button {
+    grid-row: 1;
+    grid-column: 1;
+} */

@@ -18,7 +18,18 @@ document.addEventListener('DOMContentLoaded',() => {
             indicator.classList.toggle("current", currentStep === index);
             indicator.classList.toggle("done", currentStep > index);
         });
+
+        updateButtons();
     };
+
+    const updateButtons = () => {
+        prevButton.hidden = currentStep <= stepIndicators.length - 1;
+        nextButton.hidden = currentStep >= stepIndicators.length - 1;
+        submitButton.hidden = !nextButton.hidden;
+    };
+
+
+    //*event listeners
 
     prevButton.addEventListener("click", (e) => {
         e.preventDefault(); //prevent form submission
@@ -38,4 +49,5 @@ document.addEventListener('DOMContentLoaded',() => {
         }
     });
 
+    updateProgress();
 });

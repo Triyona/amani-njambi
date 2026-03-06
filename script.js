@@ -22,10 +22,22 @@ document.addEventListener('DOMContentLoaded',() => {
         updateButtons();
     };
 
-    const updateButtons = () => {
-        prevButton.hidden = currentStep <= stepIndicators.length - 1;
-        nextButton.hidden = currentStep >= stepIndicators.length - 1;
-        submitButton.hidden = !nextButton.hidden;
+    function updateButtons () {
+        if (currentStep <= 0) {
+            prevButton.style.display = 'block'; // Show the button
+        } else {
+            prevButton.style.display = 'none'; // Hide the button
+        }
+        if (currentStep === 1) {
+            nextButton.style.display = 'block'; // Show the button
+        } else {
+            nextButton.style.display = 'none'; // Hide the button
+        }
+        if (currentStep === 2) {
+            submitButton.style.display = 'block'; // Show the button
+        } else {
+            submitButton.style.display = 'none'; // Hide the button
+        }
     };
 
 

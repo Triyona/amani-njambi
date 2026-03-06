@@ -217,9 +217,9 @@ button:disabled {
     place-items: center;
 }
 
-/* .hidden {
+.next-btn , .submit-btn{
     display: none;
-} */
+}
 
 /* .controls button {
     grid-row: 1;

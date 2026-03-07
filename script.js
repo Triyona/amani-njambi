@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded',() => {
-    
+
     const progress = document.querySelector('.progress');
     const stepsContainer = document.querySelector('.steps-container');
     const steps = document.querySelectorAll('.step');
@@ -10,11 +10,12 @@ document.addEventListener('DOMContentLoaded',() => {
 
     const acceptBtn = document.getElementById("ACCEPT");
     const declineBtn = document.getElementById("DECLINE");
-    const switchContainer = document.querySelector(".switch-container");
 
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTINXx35PLxURTZ2raLSwJQVCBh5pzE4kAqjl8RGQey0slb9D1ck7TFrT7qJn0uuTgRN3ajjdl6oxh3/pub?output=csv";
     let currentStep = 0;
+    let responseSelected = false;
 
     const updateProgress = () => {
         let width = currentStep / (stepIndicators.length - 1);
@@ -53,20 +54,25 @@ document.addEventListener('DOMContentLoaded',() => {
         }
     };
 
-
-    //accept & decline
-
-    acceptBtn.onclick = () => {
-        addRemoveActive(declineBtn, acceptBtn);
-    };
-
-    declineBtn.onclick = () => {
-        addRemoveActive(acceptBtn, declineBtn);
-    };
-
     function addRemoveActive(remove, add) {
         remove.classList.remove("active");
         add.classList.add("active");
+    }
+
+    function showError(message) {
+        let errorEl = document.querySelector(".validation-error");
+        if (!errorEl) {
+            errorEl = document.createElement("p");
+            errorEl.classList.add("validation-error");
+            document.querySelector(".controls").insertAdjacentElement("beforebegin", errorEl);
+        }
+        errorEl.textContent = message;
+
+        // Auto-clear after 3 seconds
+        clearTimeout(errorEl._timer);
+        errorEl._timer = setTimeout(() => {
+            errorEl.remove();
+        }, 3000);
     }
 
 
@@ -82,13 +88,31 @@ document.addEventListener('DOMContentLoaded',() => {
     });
 
     continueButton.addEventListener("click", (e) => {
-        e.preventDefault(); //prevent form submission
+        e.preventDefault();
 
-        if (currentStep < 3){
+        // Validate step 2: accept or decline must be selected
+        if (!responseSelected) {
+            showError("Please select Accept or Decline before continuing.");
+            return;
+        }
+
+        if (currentStep < 3) {
             currentStep++;
             updateProgress();
         }
     });
+
+    //accept & decline
+
+    acceptBtn.onclick = () => {
+        addRemoveActive(declineBtn, acceptBtn);
+        responseSelected = true;
+    };
+
+    declineBtn.onclick = () => {
+        addRemoveActive(acceptBtn, declineBtn);
+        responseSelected = true;
+    };
 
     updateProgress();
 });

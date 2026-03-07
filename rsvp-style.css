@@ -23,7 +23,6 @@ html {
 }
 
 h1 {
-    font-family: "Frunchy Sage";
     font-family: "Ibarra Real Nova", serif;
     font-size: 4rem;
     font-weight: 900;
@@ -144,15 +143,37 @@ p {
 /* FORM */
 
 .rsvp-text {
-    max-width: 28rem;
     margin: 0 auto;
     text-align: center;
-    padding: 1rem 0;
+    padding-bottom: 1rem;
+}
+
+.steps-container {
+    display: flex;
+    overflow: hidden;
+}
+
+.step {
+    flex: 1 0 100%;
+    padding: 24px 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: center;
+    height: fit-content;
+}
+
+.step.current {
+    opacity: 1;
 }
 
 h2 {
     font-family: "Frunchy Sage";
     font-size: 4rem;
+    line-height: 0.8;
+}
+
+h3 {
+    font-size: 2rem;
     line-height: 0.8;
 }
 
@@ -162,7 +183,7 @@ h2 {
     align-items: center;
 } */
 
-.form-field {
+.form-control {
     display: flex;
     flex-direction: column;
     place-items: center;

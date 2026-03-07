@@ -17,6 +17,21 @@ document.addEventListener('DOMContentLoaded',() => {
     let currentStep = 0;
     let responseSelected = false;
 
+    async function fetchGuests() {
+        const response = await fetch(SHEET_URL);
+        const csv = await response.text();
+
+        const rows = csv.trim().split("\n").slice(1); // skip header row
+        return rows.map(row => {
+            const [first, middle, last] = row.split(",");
+            return {
+                first: first?.trim().toLowerCase(),
+                middle: middle?.trim().toLowerCase(),
+                last: last?.trim().toLowerCase()
+            };
+        });
+    }
+
     const updateProgress = () => {
         let width = currentStep / (stepIndicators.length - 1);
         progress.style.transform = `scaleX(${width})`;
@@ -78,12 +93,47 @@ document.addEventListener('DOMContentLoaded',() => {
 
     //*event listeners
 
-    findButton.addEventListener("click", (e) => {
-        e.preventDefault(); //prevent form submission
+    findButton.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-        if (currentStep < 2){
+        const first = document.getElementById("first").value.trim().toLowerCase();
+        const last = document.getElementById("last").value.trim().toLowerCase();
+
+        if (!first || !last) {
+            showError("Please enter your first/middle and last name.");
+            return;
+        }
+
+        findButton.textContent = "Searching...";
+        findButton.disabled = true;
+
+        try {
+            const guests = await fetchGuests();
+
+            const found = guests.find(g =>
+                (g.first === first || g.middle === first) &&
+                g.last === last
+            );
+
+            if (!found) {
+                showError("We couldn't find your name on the guest list. Please check your spelling.");
+                findButton.textContent = "FIND YOUR INVITATION";
+                findButton.disabled = false;
+                return;
+            }
+
+            // Update the guest name in step 2 using the name from the sheet
+            const guestNameEl = document.querySelector(".guest-name");
+            guestNameEl.textContent = `${found.first} ${found.middle || ""} ${found.last}`.trim();
+
             currentStep++;
             updateProgress();
+
+        } catch (err) {
+            showError("Could not load guest list. Please try again.");
+            findButton.textContent = "FIND YOUR INVITATION";
+            findButton.disabled = false;
+            console.error(err);
         }
     });
 

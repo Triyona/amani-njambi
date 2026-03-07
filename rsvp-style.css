@@ -212,6 +212,10 @@ h3 {
     width: 100%;
 }
 
+.guest-name {
+    text-transform: capitalize;
+}
+
 .switch-container {
     position: relative;
     display: flex;

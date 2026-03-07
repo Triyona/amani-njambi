@@ -306,6 +306,10 @@ h3 {
     background-size: contain;
 }
 
+[type="checkbox"]:checked + label {
+    font-weight: 900;
+}
+
 
 /*BUTTONS*/
 

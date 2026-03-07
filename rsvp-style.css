@@ -208,7 +208,7 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 60px;
     width: 100%;
 }
 
@@ -244,6 +244,68 @@ h3 {
     color: rgb(245, 245, 220);
     border: 0;
 }
+
+.plus-one {
+    padding-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.check-container {
+    padding-top: 10px;
+}
+
+[type="checkbox"] {
+    opacity: 0;
+}
+
+[type="checkbox"] + label {
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    display: inline-block;
+    color: rgb(245, 245, 220);
+    line-height: 20px;
+}
+
+[type="checkbox"] + label::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    outline: 2px solid rgb(245, 245, 220);
+    background: rgb(128, 0, 32);
+    border-radius: 0.1rem;
+}
+
+[type="checkbox"]:checked + label::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    outline: 2px solid rgb(187, 134, 56);
+    background: rgb(187, 134, 56);
+    border-radius: 0.1rem;
+}
+
+[type="checkbox"]:checked + label::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    background-image: url(Assets/check.png);
+    background-size: contain;
+}
+
 
 /*BUTTONS*/
 

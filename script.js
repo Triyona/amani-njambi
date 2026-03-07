@@ -4,9 +4,13 @@ document.addEventListener('DOMContentLoaded',() => {
     const stepsContainer = document.querySelector('.steps-container');
     const steps = document.querySelectorAll('.step');
     const stepIndicators = document.querySelectorAll('.progress-container li');
-    const prevButton = document.querySelector('.prev-btn');
-    const nextButton = document.querySelector('.next-btn');
+    const findButton = document.querySelector('.find-btn');
+    const continueButton = document.querySelector('.continue-btn');
     const submitButton = document.querySelector('.submit-btn');
+
+    const acceptBtn = document.getElementById("ACCEPT");
+    const declineBtn = document.getElementById("DECLINE");
+    const switchContainer = document.querySelector(".switch-container");
 
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
@@ -33,14 +37,14 @@ document.addEventListener('DOMContentLoaded',() => {
 
     function updateButtons () {
         if (currentStep <= 0) {
-            prevButton.style.display = 'block'; // Show the button
+            findButton.style.display = 'block'; // Show the button
         } else {
-            prevButton.style.display = 'none'; // Hide the button
+            findButton.style.display = 'none'; // Hide the button
         }
         if (currentStep === 1) {
-            nextButton.style.display = 'block'; // Show the button
+            continueButton.style.display = 'block'; // Show the button
         } else {
-            nextButton.style.display = 'none'; // Hide the button
+            continueButton.style.display = 'none'; // Hide the button
         }
         if (currentStep === 2) {
             submitButton.style.display = 'block'; // Show the button
@@ -50,9 +54,25 @@ document.addEventListener('DOMContentLoaded',() => {
     };
 
 
+    //accept & decline
+
+    acceptBtn.onclick = () => {
+        addRemoveActive(declineBtn, acceptBtn);
+    };
+
+    declineBtn.onclick = () => {
+        addRemoveActive(acceptBtn, declineBtn);
+    };
+
+    function addRemoveActive(remove, add) {
+        remove.classList.remove("active");
+        add.classList.add("active");
+    }
+
+
     //*event listeners
 
-    prevButton.addEventListener("click", (e) => {
+    findButton.addEventListener("click", (e) => {
         e.preventDefault(); //prevent form submission
 
         if (currentStep < 2){
@@ -61,7 +81,7 @@ document.addEventListener('DOMContentLoaded',() => {
         }
     });
 
-    nextButton.addEventListener("click", (e) => {
+    continueButton.addEventListener("click", (e) => {
         e.preventDefault(); //prevent form submission
 
         if (currentStep < 3){

@@ -142,11 +142,11 @@ p {
 
 /* FORM */
 
-.rsvp-text {
+/* .rsvp-text {
     margin: 0 auto;
     text-align: center;
     padding-bottom: 1rem;
-}
+} */
 
 .steps-container {
     display: flex;
@@ -173,7 +173,7 @@ h2 {
 }
 
 h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     line-height: 0.8;
 }
 
@@ -201,7 +201,53 @@ h3 {
     border-radius: 6px;
 }
 
-.btn {
+/* STEP TWO */
+
+.form-respond {
+    padding-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.switch-container {
+    position: relative;
+    display: flex;
+    width: 230px;
+    height: 45px;
+    border-radius: 50px;
+}
+
+.switch-container button {
+    cursor: pointer;
+    transition: 0.3s ease;
+    width: 100%;
+    padding: 0rem;
+    border-radius: 0.4rem;
+    margin: 0.3rem;
+    border: 1.5px solid rgb(245, 245, 220);
+    border-color: rgb(245, 245, 220);
+    background: rgb(128, 0, 32);
+    color: rgb(245, 245, 220);
+}
+
+#ACCEPT.active {
+    background: rgb(187, 134, 56);
+    color: rgb(245, 245, 220);
+    border: 0;
+}
+
+#DECLINE.active {
+    background: rgb(187, 134, 56);
+    color: rgb(245, 245, 220);
+    border: 0;
+}
+
+/*BUTTONS*/
+
+.controls button {
     border: 0;
 }
 
@@ -217,14 +263,14 @@ button {
     color: rgb(245, 245, 220);
     font-weight: 700;
 }
-button:active, button:hover {
+.controls button:active,.controls button:hover {
     background: rgb(245, 245, 220);
     text-decoration: none;
     color: rgb(128, 0, 32);
     cursor: pointer;
 }
 
-button:disabled {
+.controls button:disabled {
     opacity: 0.8;
 }
 
@@ -238,7 +284,7 @@ button:disabled {
     place-items: center;
 }
 
-.next-btn , .submit-btn{
+.continue-btn , .submit-btn{
     display: none;
 }
 

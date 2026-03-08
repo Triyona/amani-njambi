@@ -279,9 +279,12 @@ document.addEventListener('DOMContentLoaded',() => {
                     g.first === first && !g.middle
                 );
 
-                if (!narrowed || allMatches.filter(g => g.first === first).length > 1) {
+                const firstAmbiguous = allMatches.filter(g => g.first === first).length > 1;
+                const middleAmbiguous = allMatches.filter(g => g.middle === first).length > 1;
+
+                if (!narrowed || firstAmbiguous || middleAmbiguous) {
                     // Still ambiguous — prompt for middle name
-                    showError("Multiple guests found with this name. Please include your middle name in the first field.");
+                    showError("Multiple guests found with this name. Please include your first and middle name in the first field.");
                     findButton.textContent = "FIND YOUR INVITATION";
                     findButton.disabled = false;
                     return;

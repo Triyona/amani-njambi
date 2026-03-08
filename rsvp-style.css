@@ -333,7 +333,7 @@ h3 {
 
 .family-heading {
     color: #bb8638;
-    letter-spacing: 2px;
+    font-weight: 800;
     text-transform: uppercase;
     margin-bottom: 10px;
 }

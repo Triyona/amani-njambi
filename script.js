@@ -14,15 +14,17 @@ document.addEventListener('DOMContentLoaded',() => {
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTINXx35PLxURTZ2raLSwJQVCBh5pzE4kAqjl8RGQey0slb9D1ck7TFrT7qJn0uuTgRN3ajjdl6oxh3/pub?output=csv";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZai68weYynW2Qk-uxGggZZT7S-gBYFCoR5RwGTMODE-HSt5-Yllu5hH2DpX4IACexQA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZE3BQwsX3x3ouzgew6f7kRO8hH3qAIxdExM5EdcYsstd8_WZ2FsQt37JI0goYbNpBzA/exec";
+
     let currentStep = 0;
     let responseSelected = false;
+    let currentGuest = null;
 
     async function fetchGuests() {
         const response = await fetch(SHEET_URL + `&t=${Date.now()}`);
         const csv = await response.text();
 
-        const rows = csv.trim().split("\n").slice(1); // skip header row
+        const rows = csv.trim().split(/\r?\n/).slice(1);
         return rows.map(row => {
             const cols = row.split(",");
             const first = cols[0];
@@ -30,9 +32,6 @@ document.addEventListener('DOMContentLoaded',() => {
             const last = cols[2];
             const response = cols[5];
             const email = cols[6];
-
-
-            console.log("Response value:", response);
 
             return {
                 first: first?.trim().toLowerCase(),
@@ -48,6 +47,8 @@ document.addEventListener('DOMContentLoaded',() => {
         try {
             await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ first, last, response })
             });
         } catch (err) {
@@ -59,6 +60,8 @@ document.addEventListener('DOMContentLoaded',() => {
         try {
             await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ first, last, plusOne })
             });
         } catch (err) {
@@ -188,6 +191,8 @@ document.addEventListener('DOMContentLoaded',() => {
                 return;
             }
 
+            currentGuest = found;
+
             // Update the guest name in step 2 using the name from the sheet
             const guestNameEl = document.querySelector(".guest-name");
             guestNameEl.textContent = `${found.first} ${found.middle || ""} ${found.last}`.trim();
@@ -211,6 +216,8 @@ document.addEventListener('DOMContentLoaded',() => {
             }
 
             clearError();
+            findButton.textContent = "FIND YOUR INVITATION";
+            findButton.disabled = false;
             currentStep++;
             updateProgress();
 
@@ -225,13 +232,11 @@ document.addEventListener('DOMContentLoaded',() => {
     continueButton.addEventListener("click", (e) => {
         e.preventDefault();
 
-        // Validate step 2: accept or decline must be selected
         if (!responseSelected) {
             showError("Please select Accept or Decline before continuing.");
             return;
         }
 
-        // Update plus one in sheet
         const plusOne = document.getElementById("plus-one").checked;
         updatePlusOne(
             document.getElementById("first").value.trim().toLowerCase(),
@@ -239,9 +244,18 @@ document.addEventListener('DOMContentLoaded',() => {
             plusOne ? "1" : ""
         );
 
+        // Pre-fill email if exists 👈
+        if (currentGuest && currentGuest.email) {
+            document.querySelector('input[name="email"]').value = currentGuest.email;
+        }
+
         if (currentStep < 3) {
             currentStep++;
             updateProgress();
+
+            setTimeout(() => {
+                stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+            }, 50);
         }
     });
 
@@ -265,6 +279,7 @@ document.addEventListener('DOMContentLoaded',() => {
             await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ first, last, email, response, sendConfirmation: true })
             });
 

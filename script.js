@@ -252,25 +252,41 @@ document.addEventListener('DOMContentLoaded',() => {
         const first = document.getElementById("first").value.trim().toLowerCase();
         const last = document.getElementById("last").value.trim().toLowerCase();
         const response = acceptBtn.classList.contains("active") ? "yes" : "no";
+        const successMessage = document.querySelector(".success-message"); // 👈
+        const successEmail = document.querySelector(".success-email");     // 👈
 
-        console.log("Submitting:", { first, last, email, response }); // 👈
+        console.log("Submitting:", { first, last, email, response });
 
         submitButton.textContent = "Submitting";
         submitButton.classList.add("loading-btn");
         submitButton.disabled = true;
 
         try {
-            const result = await fetch(APPS_SCRIPT_URL, {
+            await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify({ first, last, email, response, sendConfirmation: true })
             });
 
-            console.log("Fetch result:", result); // 👈
+            if (email) {
+                successMessage.textContent = "Your RSVP has been confirmed. A confirmation has been sent to:";
+                successEmail.textContent = email;
+            } else {
+                successMessage.textContent = response === "yes"
+                    ? "Your RSVP has been confirmed. We look forward to celebrating with you!"
+                    : "Thank you for letting us know. You will be missed!";
+                if (successEmail) successEmail.textContent = "";
+            }
 
-            // ... rest of code
+            currentStep++;
+            updateProgress();
+
+            setTimeout(() => {
+                stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+            }, 50);
+
         } catch (err) {
-            console.error("Submit error:", err); // 👈
+            console.error("Submit error:", err);
             showError("Could not submit RSVP. Please try again.");
             submitButton.textContent = "COMPLETE";
             submitButton.classList.remove("loading-btn");

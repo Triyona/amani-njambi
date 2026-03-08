@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded',() => {
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTINXx35PLxURTZ2raLSwJQVCBh5pzE4kAqjl8RGQey0slb9D1ck7TFrT7qJn0uuTgRN3ajjdl6oxh3/pub?output=csv";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQr5XKzjZCQHcpl9QQOjohSsfwV7Cl90-5L-Foe8QV93ZXJcC-ZjokI_dzCqZoqy8uCA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxab20ao2VGUxjQHiZLBoN6M4aNvfC9HaP5wgsQG_oHQOjd3yWPXgPV9ibzo7kDuwLjpg/exec";
 
     let currentStep = 0;
     let responseSelected = false;
@@ -22,30 +22,18 @@ document.addEventListener('DOMContentLoaded',() => {
     let allGuests = [];
 
     async function fetchGuests() {
-        const response = await fetch(SHEET_URL + `&t=${Date.now()}`);
-        const csv = await response.text();
+        const response = await fetch(APPS_SCRIPT_URL + `?t=${Date.now()}`);
+        const rows = await response.json();
 
-        const rows = csv.trim().split(/\r?\n/).slice(1);
-        return rows.map(row => {
-            const cols = row.split(",");
-            const first = cols[0];
-            const middle = cols[1];
-            const last = cols[2];
-            const familyGroup = cols[3];
-            const plusOne = cols[4];
-            const response = cols[5];
-            const email = cols[6];
-
-            return {
-                first: first?.trim().toLowerCase(),
-                middle: middle?.trim().toLowerCase(),
-                last: last?.trim().toLowerCase(),
-                familyGroup: familyGroup?.trim().toLowerCase(),
-                plusOne: plusOne?.replace(/\r/g, "").trim(),
-                response: response?.replace(/\r/g, "").trim().toLowerCase(),
-                email: email?.replace(/\r/g, "").trim()
-            };
-        });
+        return rows.map(row => ({
+            first: row["first"]?.toString().trim().toLowerCase(),       // header must be "first"
+            middle: row["middle"]?.toString().trim().toLowerCase(),     // header must be "middle"
+            last: row["last"]?.toString().trim().toLowerCase(),         // header must be "last"
+            familyGroup: row["family-group"]?.toString().trim().toLowerCase(), // header must be "family-group"
+            plusOne: row["plus 1"]?.toString().trim(),                  // header must be "plus 1"
+            response: row["response"]?.toString().trim().toLowerCase(), // header must be "response"
+            email: row["email"]?.toString().trim()                      // header must be "email"
+        }));
     }
 
     async function updateGuestResponse(first, last, response) {

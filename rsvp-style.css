@@ -381,3 +381,39 @@ button {
     font-weight: 600;
     margin: 0 0 8px;
 }
+
+.success-screen {
+    text-align: center;
+    /* padding: 40px 20px; */
+}
+
+.success-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #bb8638;
+    color: #fff;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.success-title {
+    color: rgb(245, 245, 220);
+    margin-bottom: 15px;
+}
+
+.success-message {
+    color: rgb(245, 245, 220); 
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.success-email {
+    color: #bb8638;
+    font-size: 15px;
+    font-style: italic;
+    margin-top: 8px;
+}

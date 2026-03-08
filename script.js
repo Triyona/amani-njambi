@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded',() => {
             const middle = cols[1];
             const last = cols[2];
             const response = cols[5];
+            const email = cols[6];
+
 
             console.log("Response value:", response);
 
@@ -36,7 +38,8 @@ document.addEventListener('DOMContentLoaded',() => {
                 first: first?.trim().toLowerCase(),
                 middle: middle?.trim().toLowerCase(),
                 last: last?.trim().toLowerCase(),
-                response: response?.replace(/\r/g, "").trim().toLowerCase()
+                response: response?.replace(/\r/g, "").trim().toLowerCase(),
+                email: email?.replace(/\r/g, "").trim()
             };
         });
     }
@@ -83,27 +86,14 @@ document.addEventListener('DOMContentLoaded',() => {
     };
 
     function updateButtons() {
-        if (currentStep <= 0) {
-            findButton.style.display = "block";
-            findButton.tabIndex = 0;
-        } else {
-            findButton.style.display = "none";
-            findButton.tabIndex = -1; // 👈
-        }
-        if (currentStep === 1) {
-            continueButton.style.display = "block";
-            continueButton.tabIndex = 0;
-        } else {
-            continueButton.style.display = "none";
-            continueButton.tabIndex = -1; // 👈
-        }
-        if (currentStep === 2) {
-            submitButton.style.display = "block";
-            submitButton.tabIndex = 0;
-        } else {
-            submitButton.style.display = "none";
-            submitButton.tabIndex = -1; // 👈
-        }
+        findButton.style.display = currentStep === 0 ? "block" : "none";
+        findButton.tabIndex = currentStep === 0 ? 0 : -1;
+
+        continueButton.style.display = currentStep === 1 ? "block" : "none";
+        continueButton.tabIndex = currentStep === 1 ? 0 : -1;
+
+        submitButton.style.display = currentStep === 2 ? "block" : "none";
+        submitButton.tabIndex = currentStep === 2 ? 0 : -1;
     }
 
     function addRemoveActive(remove, add) {
@@ -252,6 +242,39 @@ document.addEventListener('DOMContentLoaded',() => {
         if (currentStep < 3) {
             currentStep++;
             updateProgress();
+        }
+    });
+
+    submitButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const email = document.querySelector('input[name="email"]').value.trim();
+        const first = document.getElementById("first").value.trim().toLowerCase();
+        const last = document.getElementById("last").value.trim().toLowerCase();
+        const response = acceptBtn.classList.contains("active") ? "yes" : "no";
+
+        console.log("Submitting:", { first, last, email, response }); // 👈
+
+        submitButton.textContent = "Submitting";
+        submitButton.classList.add("loading-btn");
+        submitButton.disabled = true;
+
+        try {
+            const result = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({ first, last, email, response, sendConfirmation: true })
+            });
+
+            console.log("Fetch result:", result); // 👈
+
+            // ... rest of code
+        } catch (err) {
+            console.error("Submit error:", err); // 👈
+            showError("Could not submit RSVP. Please try again.");
+            submitButton.textContent = "COMPLETE";
+            submitButton.classList.remove("loading-btn");
+            submitButton.disabled = false;
         }
     });
 

@@ -285,32 +285,37 @@ document.addEventListener('DOMContentLoaded',() => {
             allGuests = guests;
             renderFamilyList(found, allGuests);
 
-            // Update the guest name in step 2 using the name from the sheet
+            // Update guest name in step 2
             const guestNameEl = document.querySelector(".guest-name");
             guestNameEl.textContent = `${found.first} ${found.middle || ""} ${found.last}`.trim();
+
+            // Plus one visibility
+            const plusOneCheckbox = document.getElementById("plus-one");
+            const plusOneContainer = document.querySelector(".check-container");
+
+            if (found.plusOne === "0") {
+                plusOneContainer.style.display = "none";
+            } else {
+                plusOneContainer.style.display = "block";
+                plusOneCheckbox.checked = found.response === "yes" && found.plusOne === "1";
+            }
 
             // Pre-select accept/decline based on existing response
             if (found.response === "yes") {
                 addRemoveActive(declineBtn, acceptBtn);
                 responseSelected = true;
-                document.getElementById("plus-one").disabled = false;
+                plusOneCheckbox.disabled = false;
             } else if (found.response === "no") {
                 addRemoveActive(acceptBtn, declineBtn);
                 responseSelected = true;
-                document.getElementById("plus-one").disabled = true;
-                document.getElementById("plus-one").checked = false;
+                plusOneCheckbox.disabled = true;
+                plusOneCheckbox.checked = false;
             } else {
                 acceptBtn.classList.remove("active");
                 declineBtn.classList.remove("active");
-                document.getElementById("plus-one").disabled = true; // disabled until they choose
-                document.getElementById("plus-one").checked = false;
+                plusOneCheckbox.disabled = true;
+                plusOneCheckbox.checked = false;
                 responseSelected = false;
-            }
-
-            // Pre-check plus one if it exists in sheet 👈
-            const plusOneCheckbox = document.getElementById("plus-one");
-            if (found.response === "yes") {
-                plusOneCheckbox.checked = found.plusOne === "1";
             }
 
             clearError();

@@ -314,6 +314,17 @@ h3 {
     font-weight: 900;
 }
 
+[type="checkbox"]:disabled + label {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+[type="checkbox"]:disabled + label::before {
+    outline: 2px solid rgb(245, 245, 220);
+    background: rgb(128, 0, 32);
+    opacity: 0.4;
+}
+
 
 /*BUTTONS*/
 

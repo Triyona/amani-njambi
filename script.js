@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded',() => {
             const first = cols[0];
             const middle = cols[1];
             const last = cols[2];
+            const familyGroup = cols[3];
+            const plusOne = cols[4];
             const response = cols[5];
             const email = cols[6];
 
@@ -37,6 +39,8 @@ document.addEventListener('DOMContentLoaded',() => {
                 first: first?.trim().toLowerCase(),
                 middle: middle?.trim().toLowerCase(),
                 last: last?.trim().toLowerCase(),
+                familyGroup: familyGroup?.trim().toLowerCase(),
+                plusOne: plusOne?.replace(/\r/g, "").trim(),
                 response: response?.replace(/\r/g, "").trim().toLowerCase(),
                 email: email?.replace(/\r/g, "").trim()
             };
@@ -213,6 +217,12 @@ document.addEventListener('DOMContentLoaded',() => {
                 document.getElementById("plus-one").disabled = true; // disabled until they choose
                 document.getElementById("plus-one").checked = false;
                 responseSelected = false;
+            }
+
+            // Pre-check plus one if it exists in sheet 👈
+            const plusOneCheckbox = document.getElementById("plus-one");
+            if (found.response === "yes") {
+                plusOneCheckbox.checked = found.plusOne === "1";
             }
 
             clearError();

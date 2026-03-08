@@ -257,13 +257,44 @@ document.addEventListener('DOMContentLoaded',() => {
         try {
             const guests = await fetchGuests();
 
-            const found = guests.find(g =>
-                (g.first === first || g.middle === first) &&
-                g.last === last
-            );
+            // Find all matches
+            const allMatches = guests.filter(g => {
+                const fullFirst = `${g.first} ${g.middle}`.trim();
+                return (
+                    g.first === first ||
+                    g.middle === first ||
+                    fullFirst === first
+                ) && g.last === last;
+            });
+
+            let found;
+
+            if (allMatches.length > 1) {
+                // Try to narrow down by matching first AND middle
+                const narrowed = allMatches.find(g =>
+                    g.first === first && g.middle === first
+                ) || allMatches.find(g =>
+                    g.middle === first
+                ) || allMatches.find(g =>
+                    g.first === first && !g.middle
+                );
+
+                if (!narrowed || allMatches.filter(g => g.first === first).length > 1) {
+                    // Still ambiguous — prompt for middle name
+                    showError("Multiple guests found with this name. Please include your middle name in the first field.");
+                    findButton.textContent = "FIND YOUR INVITATION";
+                    findButton.disabled = false;
+                    return;
+                }
+
+                found = narrowed;
+
+            } else {
+                found = allMatches[0];
+            }
 
             if (!found) {
-                showError("Oops! We are having trouble finding your invite. Please try another spelling of your name or contact the couple");
+                showError("Oops! We are having trouble finding your invite. Please try another spelling of your name or contact the couple.");
                 findButton.textContent = "FIND YOUR INVITATION";
                 findButton.disabled = false;
                 return;

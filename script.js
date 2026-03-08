@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded',() => {
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTINXx35PLxURTZ2raLSwJQVCBh5pzE4kAqjl8RGQey0slb9D1ck7TFrT7qJn0uuTgRN3ajjdl6oxh3/pub?output=csv";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZE3BQwsX3x3ouzgew6f7kRO8hH3qAIxdExM5EdcYsstd8_WZ2FsQt37JI0goYbNpBzA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQr5XKzjZCQHcpl9QQOjohSsfwV7Cl90-5L-Foe8QV93ZXJcC-ZjokI_dzCqZoqy8uCA/exec";
 
     let currentStep = 0;
     let responseSelected = false;

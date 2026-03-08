@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded',() => {
     let currentStep = 0;
     let responseSelected = false;
     let currentGuest = null;
+    let allGuests = [];
 
     async function fetchGuests() {
         const response = await fetch(SHEET_URL + `&t=${Date.now()}`);
@@ -71,6 +72,91 @@ document.addEventListener('DOMContentLoaded',() => {
         } catch (err) {
             console.error("Could not update plus one:", err);
         }
+    }
+
+    async function updateFamilyResponse(first, last, response) {
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ first, last, response })
+            });
+        } catch (err) {
+            console.error("Could not update family response:", err);
+        }
+    }
+
+    function renderFamilyList(currentGuest, allGuests) {
+        // Remove existing family list if any
+        const existing = document.querySelector(".family-list");
+        if (existing) existing.remove();
+
+        // Skip if no family group assigned 👈 handles blank family group
+        if (!currentGuest.familyGroup) return;
+
+        // Find family members with same group, excluding current guest
+        const familyMembers = allGuests.filter(g =>
+            g.familyGroup &&
+            g.familyGroup === currentGuest.familyGroup &&
+            !(g.first === currentGuest.first && g.last === currentGuest.last)
+        );
+
+        // Skip if no other family members found
+        if (familyMembers.length === 0) return;
+
+        // Create family list container
+        const familyList = document.createElement("div");
+        familyList.classList.add("family-list");
+
+        const heading = document.createElement("p");
+        heading.classList.add("family-heading");
+        heading.textContent = "RSVP for your family";
+        familyList.appendChild(heading);
+
+        familyMembers.forEach(member => {
+            const hasResponded = member.response === "yes" || member.response === "no";
+            const isChecked = member.response === "yes";
+            const fullName = `${member.first} ${member.middle || ""} ${member.last}`.trim();
+
+            const wrapper = document.createElement("p");
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.classList.add("family-checkbox");
+            checkbox.id = `family-${member.first}-${member.last}`;
+            checkbox.checked = isChecked;
+            checkbox.disabled = hasResponded;
+            checkbox.dataset.first = member.first;
+            checkbox.dataset.last = member.last;
+
+            const label = document.createElement("label");
+            label.htmlFor = `family-${member.first}-${member.last}`;
+            label.textContent = fullName;
+
+            if (hasResponded) {
+                label.style.opacity = "0.5";
+                label.style.cursor = "not-allowed";
+            }
+
+            if (!hasResponded) {
+                checkbox.addEventListener("change", () => {
+                    updateFamilyResponse(
+                        member.first,
+                        member.last,
+                        checkbox.checked ? "yes" : ""
+                    );
+                });
+            }
+
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            familyList.appendChild(wrapper);
+        });
+
+        // Insert after plus one container
+        const checkContainer = document.querySelector(".check-container");
+        checkContainer.insertAdjacentElement("afterend", familyList);
     }
 
     const updateProgress = () => {
@@ -196,6 +282,8 @@ document.addEventListener('DOMContentLoaded',() => {
             }
 
             currentGuest = found;
+            allGuests = guests;
+            renderFamilyList(found, allGuests);
 
             // Update the guest name in step 2 using the name from the sheet
             const guestNameEl = document.querySelector(".guest-name");

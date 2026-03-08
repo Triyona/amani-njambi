@@ -325,6 +325,32 @@ h3 {
     opacity: 0.4;
 }
 
+.family-list {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(245, 245, 220, 0.3);
+}
+
+.family-heading {
+    color: #bb8638;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.family-list p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    text-transform: capitalize;
+}
+
+.family-list label {
+    color: rgb(245, 245, 220);
+    cursor: pointer;
+}
+
 
 /*BUTTONS*/
 

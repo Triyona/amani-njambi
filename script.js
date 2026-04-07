@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',() => {
+document.addEventListener('DOMContentLoaded', () => {
 
     const progress = document.querySelector('.progress');
     const stepsContainer = document.querySelector('.steps-container');
@@ -7,13 +7,11 @@ document.addEventListener('DOMContentLoaded',() => {
     const findButton = document.querySelector('.find-btn');
     const continueButton = document.querySelector('.continue-btn');
     const submitButton = document.querySelector('.submit-btn');
-
     const acceptBtn = document.getElementById("ACCEPT");
     const declineBtn = document.getElementById("DECLINE");
 
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTINXx35PLxURTZ2raLSwJQVCBh5pzE4kAqjl8RGQey0slb9D1ck7TFrT7qJn0uuTgRN3ajjdl6oxh3/pub?output=csv";
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxab20ao2VGUxjQHiZLBoN6M4aNvfC9HaP5wgsQG_oHQOjd3yWPXgPV9ibzo7kDuwLjpg/exec";
 
     let currentStep = 0;
@@ -21,162 +19,62 @@ document.addEventListener('DOMContentLoaded',() => {
     let currentGuest = null;
     let allGuests = [];
 
+    // ── FETCH ─────────────────────────────────────────────────────
     async function fetchGuests() {
         const response = await fetch(APPS_SCRIPT_URL + `?t=${Date.now()}`);
         const rows = await response.json();
-
         return rows.map(row => ({
-            first: row["first"]?.toString().trim().toLowerCase(),       // header must be "first"
-            middle: row["middle"]?.toString().trim().toLowerCase(),     // header must be "middle"
-            last: row["last"]?.toString().trim().toLowerCase(),         // header must be "last"
-            familyGroup: row["family-group"]?.toString().trim().toLowerCase(), // header must be "family-group"
-            plusOne: row["plus 1"]?.toString().trim(),                  // header must be "plus 1"
-            response: row["response"]?.toString().trim().toLowerCase(), // header must be "response"
-            email: row["email"]?.toString().trim()                      // header must be "email"
+            first: row["first"]?.toString().trim().toLowerCase(),
+            middle: row["middle"]?.toString().trim().toLowerCase(),
+            last: row["last"]?.toString().trim().toLowerCase(),
+            familyGroup: row["family-group"]?.toString().trim().toLowerCase(),
+            plusOne: row["plus 1"]?.toString().trim(),
+            response: row["response"]?.toString().trim().toLowerCase(),
+            email: row["email"]?.toString().trim(),
+            birthYear: row["birth-year"]?.toString().trim(),
+            addedBy: row["added-by"]?.toString().trim()
         }));
     }
 
-    async function updateGuestResponse(first, last, response) {
+    async function postToSheet(payload) {
         try {
             await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ first, last, response })
+                body: JSON.stringify(payload)
             });
         } catch (err) {
-            console.error("Could not update response:", err);
+            console.error("POST error:", err);
         }
     }
 
-    async function updatePlusOne(first, last, plusOne) {
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ first, last, plusOne })
-            });
-        } catch (err) {
-            console.error("Could not update plus one:", err);
-        }
-    }
-
-    async function updateFamilyResponse(first, last, response) {
-        try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ first, last, response })
-            });
-        } catch (err) {
-            console.error("Could not update family response:", err);
-        }
-    }
-
-    function renderFamilyList(currentGuest, allGuests) {
-        // Remove existing family list if any
-        const existing = document.querySelector(".family-list");
-        if (existing) existing.remove();
-
-        // Skip if no family group assigned 👈 handles blank family group
-        if (!currentGuest.familyGroup) return;
-
-        // Find family members with same group, excluding current guest
-        const familyMembers = allGuests.filter(g =>
-            g.familyGroup &&
-            g.familyGroup === currentGuest.familyGroup &&
-            !(g.first === currentGuest.first && g.last === currentGuest.last)
-        );
-
-        // Skip if no other family members found
-        if (familyMembers.length === 0) return;
-
-        // Create family list container
-        const familyList = document.createElement("div");
-        familyList.classList.add("family-list");
-
-        const heading = document.createElement("p");
-        heading.classList.add("family-heading");
-        heading.textContent = "RSVP for your family";
-        familyList.appendChild(heading);
-
-        familyMembers.forEach(member => {
-            const hasResponded = member.response === "yes" || member.response === "no";
-            const isChecked = member.response === "yes";
-            const fullName = `${member.first} ${member.middle || ""} ${member.last}`.trim();
-
-            const wrapper = document.createElement("p");
-
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.classList.add("family-checkbox");
-            checkbox.id = `family-${member.first}-${member.last}`;
-            checkbox.checked = isChecked;
-            checkbox.disabled = hasResponded;
-            checkbox.dataset.first = member.first;
-            checkbox.dataset.last = member.last;
-
-            const label = document.createElement("label");
-            label.htmlFor = `family-${member.first}-${member.last}`;
-            label.textContent = fullName;
-
-            if (hasResponded) {
-                label.style.opacity = "0.5";
-                label.style.cursor = "not-allowed";
-            }
-
-            if (!hasResponded) {
-                checkbox.addEventListener("change", () => {
-                    updateFamilyResponse(
-                        member.first,
-                        member.last,
-                        checkbox.checked ? "yes" : ""
-                    );
-                });
-            }
-
-            wrapper.appendChild(checkbox);
-            wrapper.appendChild(label);
-            familyList.appendChild(wrapper);
-        });
-
-        // Insert after plus one container
-        const checkContainer = document.querySelector(".check-container");
-        checkContainer.insertAdjacentElement("afterend", familyList);
-    }
-
+    // ── PROGRESS ──────────────────────────────────────────────────
     const updateProgress = () => {
         let width = currentStep / (stepIndicators.length - 1);
         progress.style.transform = `scaleX(${width})`;
-
         stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
-
         stepIndicators.forEach((indicator, index) => {
             indicator.classList.toggle("current", currentStep === index);
             indicator.classList.toggle("done", currentStep > index);
         });
-        
         steps.forEach((step, index) => {
             step.style.transform = `translateX(-${currentStep * 100}%)`;
             step.classList.toggle("current", currentStep === index);
         });
-
         updateButtons();
     };
 
     function updateButtons() {
         findButton.style.display = currentStep === 0 ? "block" : "none";
         findButton.tabIndex = currentStep === 0 ? 0 : -1;
-
         continueButton.style.display = currentStep === 1 ? "block" : "none";
         continueButton.tabIndex = currentStep === 1 ? 0 : -1;
-
         submitButton.style.display = currentStep === 2 ? "block" : "none";
         submitButton.tabIndex = currentStep === 2 ? 0 : -1;
     }
 
+    // ── HELPERS ───────────────────────────────────────────────────
     function addRemoveActive(remove, add) {
         remove.classList.remove("active");
         add.classList.add("active");
@@ -190,12 +88,8 @@ document.addEventListener('DOMContentLoaded',() => {
             document.querySelector(".controls").insertAdjacentElement("beforebegin", errorEl);
         }
         errorEl.textContent = message;
-
-        // Auto-clear after 3 seconds
         clearTimeout(errorEl._timer);
-        errorEl._timer = setTimeout(() => {
-            errorEl.remove();
-        }, 5000);
+        errorEl._timer = setTimeout(() => errorEl.remove(), 5000);
     }
 
     function clearError() {
@@ -203,43 +97,318 @@ document.addEventListener('DOMContentLoaded',() => {
         if (errorEl) errorEl.remove();
     }
 
-    document.querySelector(".form-wizard").addEventListener("keydown", (e) => {
-        if (e.key === "Tab") {
-            e.preventDefault(); // 👈 prevent all default tab behavior
+    // ── BIRTH YEAR PROMPT ─────────────────────────────────────────
+    // Shown inline on step 1 when duplicate names are found
+    function showBirthYearPrompt() {
+        return new Promise((resolve) => {
+            // Remove any existing prompt
+            const existing = document.querySelector(".birth-year-prompt");
+            if (existing) existing.remove();
 
-            const currentStepEl = steps[currentStep];
-            const stepFocusable = Array.from(currentStepEl.querySelectorAll(
-                'input, select, textarea'
-            )).filter(el => !el.disabled);
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("birth-year-prompt");
+            wrapper.innerHTML = `
+                <p style="color: rgb(245,245,220); margin: 10px 0 4px; font-size: 0.95rem;">
+                    Multiple guests share this name. Please enter your birth year to continue.
+                </p>
+                <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)" 
+                    min="1900" max="2025" style="width:14rem;">
+            `;
+            const formControl = document.querySelector(".form-control");
+            formControl.insertAdjacentElement("afterend", wrapper);
 
-            // Get the visible control button
-            const visibleButton = [findButton, continueButton, submitButton]
-                .find(btn => btn.style.display === "block");
+            // Resolve when user types a 4-digit year
+            const input = wrapper.querySelector(".birth-year-input");
+            input.addEventListener("input", () => {
+                if (input.value.length === 4) resolve(input.value);
+            });
+        });
+    }
 
-            // Combine step inputs + visible button
-            const focusable = visibleButton 
-                ? [...stepFocusable, visibleButton] 
-                : stepFocusable;
+    // ── INLINE RSVP ROW (for plus-one and family members) ─────────
+    function createInlineRSVPRow({ id, fullName, existingResponse, locked, addedByPrimary }) {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("inline-rsvp-row");
+        wrapper.dataset.id = id;
 
-            if (focusable.length === 0) return;
+        const nameEl = document.createElement("span");
+        nameEl.classList.add("inline-name");
+        nameEl.textContent = fullName;
 
-            const currentIndex = focusable.indexOf(document.activeElement);
+        const switchEl = document.createElement("div");
+        switchEl.classList.add("inline-switch");
 
-            if (e.shiftKey) {
-                // Tab backwards
-                const prevIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
-                focusable[prevIndex].focus();
+        const acceptEl = document.createElement("button");
+        acceptEl.type = "button";
+        acceptEl.textContent = "ACCEPT";
+        acceptEl.classList.add("inline-accept");
+
+        const declineEl = document.createElement("button");
+        declineEl.type = "button";
+        declineEl.textContent = "DECLINE";
+        declineEl.classList.add("inline-decline");
+
+        switchEl.appendChild(acceptEl);
+        switchEl.appendChild(declineEl);
+
+        if (locked) {
+            // Already responded independently — show status, no interaction
+            acceptEl.disabled = true;
+            declineEl.disabled = true;
+            if (existingResponse === "yes") acceptEl.classList.add("active");
+            if (existingResponse === "no") declineEl.classList.add("active");
+
+            const lockedNote = document.createElement("span");
+            lockedNote.classList.add("locked-note");
+            lockedNote.textContent = "Already responded";
+            wrapper.appendChild(nameEl);
+            wrapper.appendChild(switchEl);
+            wrapper.appendChild(lockedNote);
+        } else {
+            // Pre-fill if previously set by proxy
+            if (existingResponse === "yes") acceptEl.classList.add("active");
+            if (existingResponse === "no") declineEl.classList.add("active");
+
+            acceptEl.addEventListener("click", () => {
+                acceptEl.classList.add("active");
+                declineEl.classList.remove("active");
+                wrapper.dataset.response = "yes";
+            });
+            declineEl.addEventListener("click", () => {
+                declineEl.classList.add("active");
+                acceptEl.classList.remove("active");
+                wrapper.dataset.response = "no";
+            });
+
+            // Set initial dataset value
+            wrapper.dataset.response = existingResponse || "";
+
+            // Remove button (only for newly added members, not existing ones)
+            if (!existingResponse && addedByPrimary) {
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.textContent = "✕";
+                removeBtn.classList.add("remove-member-btn");
+                removeBtn.addEventListener("click", () => wrapper.remove());
+                wrapper.appendChild(nameEl);
+                wrapper.appendChild(switchEl);
+                wrapper.appendChild(removeBtn);
             } else {
-                // Tab forwards
-                const nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
-                focusable[nextIndex].focus();
+                wrapper.appendChild(nameEl);
+                wrapper.appendChild(switchEl);
             }
         }
-    });
 
+        return wrapper;
+    }
 
-    //*event listeners
+    // ── PLUS ONE SECTION ──────────────────────────────────────────
+    function renderPlusOneSection(guest) {
+        const container = document.querySelector(".check-container");
+        container.innerHTML = "";
 
+        // Checkbox
+        const checkWrapper = document.createElement("p");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "plus-one";
+        checkbox.name = "plus-one";
+
+        const label = document.createElement("label");
+        label.htmlFor = "plus-one";
+        label.textContent = "Plus one";
+
+        checkWrapper.appendChild(checkbox);
+        checkWrapper.appendChild(label);
+        container.appendChild(checkWrapper);
+
+        // Plus-one name fields (shown when checked)
+        const plusOneFields = document.createElement("div");
+        plusOneFields.classList.add("plus-one-fields");
+        plusOneFields.style.display = "none";
+        plusOneFields.innerHTML = `
+            <input type="text" class="text-input plus-one-first" placeholder="Plus One First Name" style="width:13rem; margin: 6px 4px;">
+            <input type="text" class="text-input plus-one-last" placeholder="Plus One Last Name" style="width:13rem; margin: 6px 4px;">
+        `;
+
+        // Inline RSVP row for plus-one (inserted after name fields are filled)
+        const plusOneRSVP = document.createElement("div");
+        plusOneRSVP.classList.add("plus-one-rsvp");
+        plusOneFields.appendChild(plusOneRSVP);
+        container.appendChild(plusOneFields);
+
+        // If guest has no plus-one allowance
+        if (guest.plusOne === "0") {
+            container.style.display = "none";
+            return;
+        }
+
+        container.style.display = "block";
+
+        // Pre-check if plus one was previously set
+        if (guest.plusOne === "1") {
+            checkbox.checked = true;
+            plusOneFields.style.display = "block";
+        }
+
+        checkbox.addEventListener("change", () => {
+            plusOneFields.style.display = checkbox.checked ? "block" : "none";
+            if (!checkbox.checked) plusOneRSVP.innerHTML = "";
+        });
+
+        // When both name fields filled, check if they exist and render inline row
+        const firstInput = plusOneFields.querySelector(".plus-one-first");
+        const lastInput = plusOneFields.querySelector(".plus-one-last");
+
+        function checkAndRenderPlusOne() {
+            const first = firstInput.value.trim().toLowerCase();
+            const last = lastInput.value.trim().toLowerCase();
+            if (!first || !last) return;
+
+            plusOneRSVP.innerHTML = "";
+            const existing = allGuests.find(g => g.first === first && g.last === last);
+            const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
+
+            const row = createInlineRSVPRow({
+                id: `plusone-${first}-${last}`,
+                fullName: `${firstInput.value.trim()} ${lastInput.value.trim()}`,
+                existingResponse: existing?.response || "",
+                locked: hasResponded && existing.addedBy === "",  // locked only if they responded independently
+                addedByPrimary: true
+            });
+            plusOneRSVP.appendChild(row);
+        }
+
+        lastInput.addEventListener("blur", checkAndRenderPlusOne);
+    }
+
+    // ── FAMILY SECTION ────────────────────────────────────────────
+    function renderFamilySection(guest, allGuests) {
+        const existing = document.querySelector(".family-list");
+        if (existing) existing.remove();
+
+        const familyList = document.createElement("div");
+        familyList.classList.add("family-list");
+
+        const heading = document.createElement("p");
+        heading.classList.add("family-heading");
+        heading.textContent = "RSVP for your family";
+        familyList.appendChild(heading);
+
+        // Show existing family members from sheet (same family-group)
+        if (guest.familyGroup) {
+            const familyMembers = allGuests.filter(g =>
+                g.familyGroup &&
+                g.familyGroup === guest.familyGroup &&
+                !(g.first === guest.first && g.last === guest.last)
+            );
+
+            familyMembers.forEach(member => {
+                const hasResponded = member.response === "yes" || member.response === "no";
+                const respondedIndependently = hasResponded && !member.addedBy;
+                const fullName = `${member.first} ${member.middle || ""} ${member.last}`.trim();
+
+                const row = createInlineRSVPRow({
+                    id: `family-${member.first}-${member.last}`,
+                    fullName,
+                    existingResponse: member.response || "",
+                    locked: respondedIndependently,
+                    addedByPrimary: false
+                });
+                familyList.appendChild(row);
+            });
+        }
+
+        // Add family member fields
+        const addSection = document.createElement("div");
+        addSection.classList.add("add-family-section");
+
+        const addFields = document.createElement("div");
+        addFields.classList.add("add-family-fields");
+        addFields.style.display = "none";
+        addFields.innerHTML = `
+            <input type="text" class="text-input fam-first" placeholder="First Name" style="width:12rem; margin: 4px;">
+            <input type="text" class="text-input fam-middle" placeholder="Middle Name (optional)" style="width:12rem; margin: 4px;">
+            <input type="text" class="text-input fam-last" placeholder="Last Name" style="width:12rem; margin: 4px;">
+            <input type="number" class="text-input fam-year" placeholder="Birth Year (if needed)" style="width:12rem; margin: 4px;" min="1900" max="2025">
+        `;
+
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.textContent = "+ Add Family Member";
+        addBtn.classList.add("add-family-btn");
+
+        const confirmAddBtn = document.createElement("button");
+        confirmAddBtn.type = "button";
+        confirmAddBtn.textContent = "Confirm";
+        confirmAddBtn.classList.add("confirm-add-btn");
+        confirmAddBtn.style.display = "none";
+
+        addBtn.addEventListener("click", () => {
+            addFields.style.display = "block";
+            confirmAddBtn.style.display = "inline-block";
+            addBtn.style.display = "none";
+        });
+
+        confirmAddBtn.addEventListener("click", () => {
+            const first = addFields.querySelector(".fam-first").value.trim().toLowerCase();
+            const middle = addFields.querySelector(".fam-middle").value.trim().toLowerCase();
+            const last = addFields.querySelector(".fam-last").value.trim().toLowerCase();
+            const year = addFields.querySelector(".fam-year").value.trim();
+
+            if (!first || !last) {
+                showError("Please enter at least a first and last name.");
+                return;
+            }
+
+            // Check if already in system
+            const existingMatches = allGuests.filter(g => g.first === first && g.last === last);
+            let existing = null;
+
+            if (existingMatches.length === 1) {
+                existing = existingMatches[0];
+            } else if (existingMatches.length > 1 && year) {
+                existing = existingMatches.find(g => g.birthYear === year);
+            }
+
+            const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
+            const respondedIndependently = hasResponded && !existing.addedBy;
+            const fullName = `${addFields.querySelector(".fam-first").value.trim()} ${middle ? addFields.querySelector(".fam-middle").value.trim() + " " : ""}${addFields.querySelector(".fam-last").value.trim()}`.trim();
+
+            const row = createInlineRSVPRow({
+                id: `family-new-${first}-${last}-${Date.now()}`,
+                fullName,
+                existingResponse: existing?.response || "",
+                locked: respondedIndependently,
+                addedByPrimary: true
+            });
+
+            // Store data for submission
+            row.dataset.first = first;
+            row.dataset.middle = middle;
+            row.dataset.last = last;
+            row.dataset.birthYear = year;
+            row.dataset.isNew = existing ? "false" : "true";
+
+            familyList.insertBefore(row, addSection);
+
+            // Reset fields
+            addFields.querySelectorAll("input").forEach(i => i.value = "");
+            addFields.style.display = "none";
+            confirmAddBtn.style.display = "none";
+            addBtn.style.display = "inline-block";
+        });
+
+        addSection.appendChild(addFields);
+        addSection.appendChild(addBtn);
+        addSection.appendChild(confirmAddBtn);
+        familyList.appendChild(addSection);
+
+        const checkContainer = document.querySelector(".check-container");
+        checkContainer.insertAdjacentElement("afterend", familyList);
+    }
+
+    // ── FIND BUTTON ───────────────────────────────────────────────
     findButton.addEventListener("click", async (e) => {
         e.preventDefault();
 
@@ -256,89 +425,65 @@ document.addEventListener('DOMContentLoaded',() => {
 
         try {
             const guests = await fetchGuests();
+            allGuests = guests;
 
-            // Find all matches
-            const allMatches = guests.filter(g => {
+            // Find matches by first+last (or first+middle+last)
+            let matches = guests.filter(g => {
                 const fullFirst = `${g.first} ${g.middle}`.trim();
-                return (
-                    g.first === first ||
-                    g.middle === first ||
-                    fullFirst === first
-                ) && g.last === last;
+                return (g.first === first || g.middle === first || fullFirst === first) && g.last === last;
             });
 
-            let found;
+            let found = null;
 
-            if (allMatches.length > 1) {
-                // Try to narrow down by matching first AND middle
-                const narrowed = allMatches.find(g =>
-                    g.first === first && g.middle === first
-                ) || allMatches.find(g =>
-                    g.middle === first
-                ) || allMatches.find(g =>
-                    g.first === first && !g.middle
-                );
+            if (matches.length === 0) {
+                // ── NEW GUEST ──
+                // Ask birth year upfront in case of future duplicates
+                const birthYear = await showBirthYearPrompt();
+                await postToSheet({
+                    action: "createGuest",
+                    first, last, birthYear
+                });
+                // Re-fetch to get the new guest
+                allGuests = await fetchGuests();
+                found = allGuests.find(g => g.first === first && g.last === last && g.birthYear === birthYear);
+                if (!found) found = { first, last, middle: "", familyGroup: "", plusOne: "", response: "", email: "", birthYear };
 
-                const firstAmbiguous = allMatches.filter(g => g.first === first).length > 1;
-                const middleAmbiguous = allMatches.filter(g => g.middle === first).length > 1;
-
-                if (!narrowed || firstAmbiguous || middleAmbiguous) {
-                    // Still ambiguous — prompt for middle name
-                    showError("Multiple guests found with this name. Please include your first and middle name in the first field.");
+            } else if (matches.length > 1) {
+                // ── DUPLICATE NAME ──
+                const birthYear = await showBirthYearPrompt();
+                found = matches.find(g => g.birthYear === birthYear);
+                if (!found) {
+                    showError("Birth year did not match any record. Please try again or contact the couple.");
                     findButton.textContent = "FIND YOUR INVITATION";
                     findButton.disabled = false;
                     return;
                 }
 
-                found = narrowed;
-
             } else {
-                found = allMatches[0];
-            }
-
-            if (!found) {
-                showError("Oops! We are having trouble finding your invite. Please try another spelling of your name or contact the couple.");
-                findButton.textContent = "FIND YOUR INVITATION";
-                findButton.disabled = false;
-                return;
+                found = matches[0];
             }
 
             currentGuest = found;
-            allGuests = guests;
-            renderFamilyList(found, allGuests);
 
-            // Update guest name in step 2
-            const guestNameEl = document.querySelector(".guest-name");
-            guestNameEl.textContent = `${found.first} ${found.middle || ""} ${found.last}`.trim();
+            // Update guest name display
+            document.querySelector(".guest-name").textContent =
+                `${found.first} ${found.middle || ""} ${found.last}`.trim();
 
-            // Plus one visibility
-            const plusOneCheckbox = document.getElementById("plus-one");
-            const plusOneContainer = document.querySelector(".check-container");
-
-            if (found.plusOne === "0") {
-                plusOneContainer.style.display = "none";
-            } else {
-                plusOneContainer.style.display = "block";
-                plusOneCheckbox.checked = found.response === "yes" && found.plusOne === "1";
-            }
-
-            // Pre-select accept/decline based on existing response
+            // Pre-select accept/decline
             if (found.response === "yes") {
                 addRemoveActive(declineBtn, acceptBtn);
                 responseSelected = true;
-                plusOneCheckbox.disabled = false;
             } else if (found.response === "no") {
                 addRemoveActive(acceptBtn, declineBtn);
                 responseSelected = true;
-                plusOneCheckbox.disabled = true;
-                plusOneCheckbox.checked = false;
             } else {
                 acceptBtn.classList.remove("active");
                 declineBtn.classList.remove("active");
-                plusOneCheckbox.disabled = true;
-                plusOneCheckbox.checked = false;
                 responseSelected = false;
             }
+
+            renderPlusOneSection(found);
+            renderFamilySection(found, allGuests);
 
             clearError();
             findButton.textContent = "FIND YOUR INVITATION";
@@ -354,7 +499,8 @@ document.addEventListener('DOMContentLoaded',() => {
         }
     });
 
-    continueButton.addEventListener("click", (e) => {
+    // ── CONTINUE BUTTON ───────────────────────────────────────────
+    continueButton.addEventListener("click", async (e) => {
         e.preventDefault();
 
         if (!responseSelected) {
@@ -362,42 +508,100 @@ document.addEventListener('DOMContentLoaded',() => {
             return;
         }
 
-        const plusOne = document.getElementById("plus-one").checked;
-        updatePlusOne(
-            document.getElementById("first").value.trim().toLowerCase(),
-            document.getElementById("last").value.trim().toLowerCase(),
-            plusOne ? "1" : ""
-        );
+        continueButton.textContent = "Saving...";
+        continueButton.disabled = true;
 
-        // Pre-fill email if exists 👈
-        if (currentGuest && currentGuest.email) {
+        // Collect all family rows
+        const familyRows = document.querySelectorAll(".family-list .inline-rsvp-row");
+        const membersForGroup = [{ first: currentGuest.first, last: currentGuest.last }];
+
+        for (const row of familyRows) {
+            const first = row.dataset.first;
+            const last = row.dataset.last;
+            const middle = row.dataset.middle || "";
+            const birthYear = row.dataset.birthYear || "";
+            const isNew = row.dataset.isNew === "true";
+            const response = row.dataset.response || "";
+
+            if (!first || !last) continue;
+
+            // Create new guest row if they weren't in the system
+            if (isNew) {
+                await postToSheet({
+                    action: "createGuest",
+                    first, middle, last, birthYear,
+                    addedBy: `${currentGuest.first} ${currentGuest.last}`
+                });
+            }
+
+            // Update their response if set
+            if (response) {
+                await postToSheet({ first, last, birthYear, response });
+            }
+
+            membersForGroup.push({ first, last });
+        }
+
+        // Plus-one handling
+        const plusOneCheckbox = document.getElementById("plus-one");
+        if (plusOneCheckbox && plusOneCheckbox.checked) {
+            const poFirst = document.querySelector(".plus-one-first")?.value.trim().toLowerCase();
+            const poLast = document.querySelector(".plus-one-last")?.value.trim().toLowerCase();
+            const poRow = document.querySelector(".plus-one-rsvp .inline-rsvp-row");
+            const poResponse = poRow?.dataset.response || "";
+            const poIsNew = !allGuests.find(g => g.first === poFirst && g.last === poLast);
+
+            if (poFirst && poLast) {
+                if (poIsNew) {
+                    await postToSheet({
+                        action: "createGuest",
+                        first: poFirst, last: poLast,
+                        addedBy: `${currentGuest.first} ${currentGuest.last}`
+                    });
+                }
+                if (poResponse) {
+                    await postToSheet({ first: poFirst, last: poLast, response: poResponse });
+                }
+                await postToSheet({
+                    first: currentGuest.first,
+                    last: currentGuest.last,
+                    plusOne: "1"
+                });
+            }
+        }
+
+        // Link family group if there are members
+        if (membersForGroup.length > 1) {
+            await postToSheet({ action: "linkFamilyGroup", members: membersForGroup });
+        }
+
+        // Pre-fill email
+        if (currentGuest?.email) {
             document.querySelector('input[name="email"]').value = currentGuest.email;
         }
 
-        if (currentStep < 3) {
-            currentStep++;
-            updateProgress();
+        continueButton.textContent = "CONTINUE";
+        continueButton.disabled = false;
+        currentStep++;
+        updateProgress();
 
-            setTimeout(() => {
-                stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
-            }, 50);
-        }
+        setTimeout(() => {
+            stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+        }, 50);
     });
 
+    // ── SUBMIT BUTTON ─────────────────────────────────────────────
     submitButton.addEventListener("click", async (e) => {
         e.preventDefault();
 
         const email = document.querySelector('input[name="email"]').value.trim();
-        const first = document.getElementById("first").value.trim().toLowerCase();
-        const last = document.getElementById("last").value.trim().toLowerCase();
+        const first = currentGuest.first;
+        const last = currentGuest.last;
         const response = acceptBtn.classList.contains("active") ? "yes" : "no";
-        const successMessage = document.querySelector(".success-message"); // 👈
-        const successEmail = document.querySelector(".success-email");     // 👈
+        const successMessage = document.querySelector(".success-message");
+        const successEmail = document.querySelector(".success-email");
 
-        console.log("Submitting:", { first, last, email, response });
-
-        submitButton.textContent = "Submitting";
-        submitButton.classList.add("loading-btn");
+        submitButton.textContent = "Submitting...";
         submitButton.disabled = true;
 
         try {
@@ -420,7 +624,6 @@ document.addEventListener('DOMContentLoaded',() => {
 
             currentStep++;
             updateProgress();
-
             setTimeout(() => {
                 stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
             }, 50);
@@ -429,41 +632,44 @@ document.addEventListener('DOMContentLoaded',() => {
             console.error("Submit error:", err);
             showError("Could not submit RSVP. Please try again.");
             submitButton.textContent = "COMPLETE";
-            submitButton.classList.remove("loading-btn");
             submitButton.disabled = false;
         }
     });
 
-    //accept & decline
-
+    // ── ACCEPT / DECLINE ──────────────────────────────────────────
     acceptBtn.onclick = () => {
         addRemoveActive(declineBtn, acceptBtn);
         responseSelected = true;
-
-        const plusOne = document.getElementById("plus-one");
-        plusOne.disabled = false; // 👈 CSS handles the visual
-
-        updateGuestResponse(
-            document.getElementById("first").value.trim().toLowerCase(),
-            document.getElementById("last").value.trim().toLowerCase(),
-            "yes"
-        );
+        postToSheet({ first: currentGuest?.first, last: currentGuest?.last, response: "yes" });
     };
 
     declineBtn.onclick = () => {
         addRemoveActive(acceptBtn, declineBtn);
         responseSelected = true;
-
-        const plusOne = document.getElementById("plus-one");
-        plusOne.disabled = true;  // 👈 CSS handles the visual
-        plusOne.checked = false;
-
-        updateGuestResponse(
-            document.getElementById("first").value.trim().toLowerCase(),
-            document.getElementById("last").value.trim().toLowerCase(),
-            "no"
-        );
+        postToSheet({ first: currentGuest?.first, last: currentGuest?.last, response: "no" });
     };
+
+    // ── TAB HANDLING ──────────────────────────────────────────────
+    document.querySelector(".form-wizard").addEventListener("keydown", (e) => {
+        if (e.key !== "Tab") return;
+        e.preventDefault();
+        const currentStepEl = steps[currentStep];
+        const stepFocusable = Array.from(currentStepEl.querySelectorAll(
+            'input, select, textarea, button'
+        )).filter(el => !el.disabled);
+        const visibleButton = [findButton, continueButton, submitButton]
+            .find(btn => btn.style.display === "block");
+        const focusable = visibleButton ? [...stepFocusable, visibleButton] : stepFocusable;
+        if (focusable.length === 0) return;
+        const currentIndex = focusable.indexOf(document.activeElement);
+        if (e.shiftKey) {
+            const prevIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
+            focusable[prevIndex].focus();
+        } else {
+            const nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
+            focusable[nextIndex].focus();
+        }
+    });
 
     updateProgress();
 });

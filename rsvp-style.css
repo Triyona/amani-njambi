@@ -443,3 +443,128 @@ button {
     font-style: italic;
     margin-top: 8px;
 }
+
+/* INLINE RSVP ROW (plus-one & family members) */
+.inline-rsvp-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(245, 245, 220, 0.08);
+    flex-wrap: wrap;
+}
+
+.inline-name {
+    color: rgb(245, 245, 220);
+    text-transform: capitalize;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 120px;
+}
+
+.inline-switch {
+    display: flex;
+    gap: 6px;
+}
+
+.inline-switch button {
+    margin-top: 0;
+    width: 90px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    border: 1.5px solid rgb(245, 245, 220);
+    background: rgb(128, 0, 32);
+    color: rgb(245, 245, 220);
+    cursor: pointer;
+}
+
+.inline-switch button.active {
+    background: rgb(187, 134, 56);
+    border-color: rgb(187, 134, 56);
+    color: rgb(245, 245, 220);
+}
+
+.inline-switch button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.locked-note {
+    font-size: 0.75rem;
+    color: rgb(187, 134, 56);
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.remove-member-btn {
+    margin-top: 0;
+    width: auto;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    background: transparent;
+    border: 1px solid rgba(245, 245, 220, 0.4);
+    color: rgba(245, 245, 220, 0.6);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-member-btn:hover {
+    background: rgba(245, 245, 220, 0.1);
+    color: rgb(245, 245, 220);
+}
+
+/* PLUS ONE FIELDS */
+.plus-one-fields {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 8px;
+}
+
+/* ADD FAMILY SECTION */
+.add-family-section {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.add-family-fields {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.add-family-btn,
+.confirm-add-btn {
+    margin-top: 6px;
+    width: auto;
+    padding: 7px 20px;
+    font-size: 0.9rem;
+    background: transparent;
+    border: 1.5px solid rgb(187, 134, 56);
+    color: rgb(187, 134, 56);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-family-btn:hover,
+.confirm-add-btn:hover {
+    background: rgb(187, 134, 56);
+    color: rgb(245, 245, 220);
+}
+
+/* BIRTH YEAR PROMPT */
+.birth-year-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 6px;
+}

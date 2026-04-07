@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkbox.addEventListener("change", () => {
             plusOneFields.style.display = checkbox.checked ? "block" : "none";
             if (!checkbox.checked) plusOneRSVP.innerHTML = "";
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         });
 
         // When both name fields filled, check if they exist and render inline row
@@ -351,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addFields.style.display = "block";
             confirmAddBtn.style.display = "inline-block";
             addBtn.style.display = "none";
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         });
 
         confirmAddBtn.addEventListener("click", () => {

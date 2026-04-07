@@ -334,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" class="text-input fam-first" placeholder="First Name" style="width:12rem; margin: 4px;">
             <input type="text" class="text-input fam-middle" placeholder="Middle Name (optional)" style="width:12rem; margin: 4px;">
             <input type="text" class="text-input fam-last" placeholder="Last Name" style="width:12rem; margin: 4px;">
-            <input type="number" class="text-input fam-year" placeholder="Birth Year (if needed)" style="width:12rem; margin: 4px;" min="1900" max="2025">
         `;
 
         const addBtn = document.createElement("button");
@@ -356,10 +355,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         confirmAddBtn.addEventListener("click", () => {
-            const first = addFields.querySelector(".fam-first").value.trim().toLowerCase();
-            const middle = addFields.querySelector(".fam-middle").value.trim().toLowerCase();
-            const last = addFields.querySelector(".fam-last").value.trim().toLowerCase();
-            const year = addFields.querySelector(".fam-year").value.trim();
+            const firstVal = addFields.querySelector(".fam-first").value.trim();
+            const middleVal = addFields.querySelector(".fam-middle").value.trim();
+            const lastVal = addFields.querySelector(".fam-last").value.trim();
+            const first = firstVal.toLowerCase();
+            const middle = middleVal.toLowerCase();
+            const last = lastVal.toLowerCase();
 
             if (!first || !last) {
                 showError("Please enter at least a first and last name.");
@@ -369,16 +370,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // Check if already in system
             const existingMatches = allGuests.filter(g => g.first === first && g.last === last);
             let existing = null;
+            let birthYear = "";
 
             if (existingMatches.length === 1) {
                 existing = existingMatches[0];
-            } else if (existingMatches.length > 1 && year) {
-                existing = existingMatches.find(g => g.birthYear === year);
+                birthYear = existing.birthYear || "";
+
+            } else if (existingMatches.length > 1) {
+                // Show birth year field if not already shown
+                let yearField = addFields.querySelector(".fam-year");
+                if (!yearField) {
+                    yearField = document.createElement("input");
+                    yearField.type = "number";
+                    yearField.classList.add("text-input", "fam-year");
+                    yearField.placeholder = "Birth Year (required)";
+                    yearField.style.cssText = "width:12rem; margin: 4px;";
+                    yearField.min = "1900";
+                    yearField.max = "2025";
+                    addFields.appendChild(yearField);
+                    stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+                }
+                birthYear = yearField.value.trim();
+                if (!birthYear) {
+                    showError("Multiple people share this name. Please enter their birth year.");
+                    return;
+                }
+                existing = existingMatches.find(g => g.birthYear === birthYear);
             }
 
             const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
             const respondedIndependently = hasResponded && !existing.addedBy;
-            const fullName = `${addFields.querySelector(".fam-first").value.trim()} ${middle ? addFields.querySelector(".fam-middle").value.trim() + " " : ""}${addFields.querySelector(".fam-last").value.trim()}`.trim();
+            const fullName = `${firstVal}${middleVal ? " " + middleVal : ""} ${lastVal}`.trim();
 
             const row = createInlineRSVPRow({
                 id: `family-new-${first}-${last}-${Date.now()}`,
@@ -392,10 +414,13 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.first = first;
             row.dataset.middle = middle;
             row.dataset.last = last;
-            row.dataset.birthYear = year;
+            row.dataset.birthYear = birthYear;
             row.dataset.isNew = existing ? "false" : "true";
 
             familyList.insertBefore(row, addSection);
+
+            // Recalculate height
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
 
             // Reset fields
             addFields.querySelectorAll("input").forEach(i => i.value = "");

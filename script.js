@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateProgress = () => {
         let width = currentStep / (stepIndicators.length - 1);
         progress.style.transform = `scaleX(${width})`;
-        stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+        stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         stepIndicators.forEach((indicator, index) => {
             indicator.classList.toggle("current", currentStep === index);
             indicator.classList.toggle("done", currentStep > index);
@@ -119,6 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Resolve when user types a 4-digit year
             const input = wrapper.querySelector(".birth-year-input");
+            // Trigger height recalculation after prompt is added
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+
             input.addEventListener("input", () => {
                 if (input.value.length === 4) resolve(input.value);
             });
@@ -436,17 +439,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let found = null;
 
             if (matches.length === 0) {
-                // ── NEW GUEST ──
-                // Ask birth year upfront in case of future duplicates
-                const birthYear = await showBirthYearPrompt();
+                // ── NEW GUEST ── create immediately, no birth year needed
                 await postToSheet({
                     action: "createGuest",
-                    first, last, birthYear
+                    first, last
                 });
-                // Re-fetch to get the new guest
                 allGuests = await fetchGuests();
-                found = allGuests.find(g => g.first === first && g.last === last && g.birthYear === birthYear);
-                if (!found) found = { first, last, middle: "", familyGroup: "", plusOne: "", response: "", email: "", birthYear };
+                found = allGuests.find(g => g.first === first && g.last === last);
+                if (!found) found = { first, last, middle: "", familyGroup: "", plusOne: "", response: "", email: "", birthYear: "" };
 
             } else if (matches.length > 1) {
                 // ── DUPLICATE NAME ──

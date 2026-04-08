@@ -143,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switchEl.appendChild(declineEl);
 
         if (locked) {
+            wrapper.dataset.locked = "true";
             acceptEl.disabled = true;
             declineEl.disabled = true;
             if (existingResponse === "yes") acceptEl.classList.add("active");
@@ -423,6 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     locked: respondedIndependently,
                     addedByPrimary: false
                 });
+                // Store data so they're included in linkFamilyGroup
+                row.dataset.first = member.first;
+                row.dataset.last = member.last;
+                row.dataset.birthYear = member.birthYear || "";
+                row.dataset.isNew = "false";
                 familyList.appendChild(row);
             });
         }
@@ -739,8 +745,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Validate family rows
         for (const row of familyRows) {
-            if (!row.dataset.locked && !row.dataset.response) {
+            const isLocked = row.dataset.locked === "true";
+            const hasResponse = row.dataset.response === "yes" || row.dataset.response === "no";
+            const isExisting = row.dataset.isNew === "false";
+
+            // Skip locked rows and existing members who already have a response
+            if (isLocked) continue;
+            if (isExisting && hasResponse) continue;
+
+            // Only require response for new additions or existing members with no prior response
+            if (!hasResponse) {
                 showError("Please select Accept or Decline for all family members.");
+                continueButton.textContent = "CONTINUE";
+                continueButton.disabled = false;
                 return;
             }
         }

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.documentElement.style.setProperty('--steps', stepIndicators.length);
 
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxab20ao2VGUxjQHiZLBoN6M4aNvfC9HaP5wgsQG_oHQOjd3yWPXgPV9ibzo7kDuwLjpg/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGothnuPsQDs29K_JCmBRs4HIYHtYPBdesdnatH_4LqmKM6QvEKJwfdD6ao815yAl5Q/exec";
 
     let currentStep = 0;
     let responseSelected = false;
@@ -199,86 +199,220 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector(".check-container");
         container.innerHTML = "";
 
-        // Checkbox
-        const checkWrapper = document.createElement("p");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = "plus-one";
-        checkbox.name = "plus-one";
+        // Remove any existing added-by notice
+        const existingNotice = document.querySelector(".plusone-notice");
+        if (existingNotice) existingNotice.remove();
 
-        const label = document.createElement("label");
-        label.htmlFor = "plus-one";
-        label.textContent = "Plus one";
-
-        checkWrapper.appendChild(checkbox);
-        checkWrapper.appendChild(label);
-        container.appendChild(checkWrapper);
-
-        // Plus-one name fields (shown when checked)
-        const plusOneFields = document.createElement("div");
-        plusOneFields.classList.add("plus-one-fields");
-        plusOneFields.style.display = "none";
-        plusOneFields.innerHTML = `
-            <input type="text" class="text-input plus-one-first" placeholder="Plus One First Name" style="width:13rem; margin: 6px 4px;">
-            <input type="text" class="text-input plus-one-last" placeholder="Plus One Last Name" style="width:13rem; margin: 6px 4px;">
-        `;
-
-        // Inline RSVP row for plus-one (inserted after name fields are filled)
-        const plusOneRSVP = document.createElement("div");
-        plusOneRSVP.classList.add("plus-one-rsvp");
-        plusOneFields.appendChild(plusOneRSVP);
-        container.appendChild(plusOneFields);
-
-        // If guest has no plus-one allowance
+        // If guest is a plus one themselves — show notice, hide section
         if (guest.plusOne === "0") {
             container.style.display = "none";
+            if (guest.addedBy) {
+                const notice = document.createElement("p");
+                notice.classList.add("plusone-notice");
+                notice.style.cssText = "color: rgb(187,134,56); font-size: 0.95rem; margin-top: 10px; font-style: italic;";
+                // Capitalize added-by name
+                const addedByName = guest.addedBy.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+                notice.textContent = `You have been added as a plus one by ${addedByName}.`;
+                container.insertAdjacentElement("afterend", notice);
+            }
             return;
         }
 
         container.style.display = "block";
 
-        // Pre-check if plus one was previously set
-        if (guest.plusOne === "1") {
+        // ── CHECKBOX ──
+        const checkWrapper = document.createElement("p");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "plus-one";
+        checkbox.name = "plus-one";
+        const label = document.createElement("label");
+        label.htmlFor = "plus-one";
+        label.textContent = "Plus one";
+        checkWrapper.appendChild(checkbox);
+        checkWrapper.appendChild(label);
+        container.appendChild(checkWrapper);
+
+        // ── PLUS ONE FIELDS AREA ──
+        const plusOneArea = document.createElement("div");
+        plusOneArea.classList.add("plus-one-area");
+        plusOneArea.style.display = "none";
+        container.appendChild(plusOneArea);
+
+        // Name input fields
+        const plusOneFields = document.createElement("div");
+        plusOneFields.classList.add("plus-one-fields");
+        plusOneFields.innerHTML = `
+            <input type="text" class="text-input plus-one-first" placeholder="Plus One First Name" style="width:13rem; margin: 6px 4px;">
+            <input type="text" class="text-input plus-one-last" placeholder="Plus One Last Name" style="width:13rem; margin: 6px 4px;">
+            <input type="number" class="text-input plus-one-year" placeholder="Birth Year (if needed)" style="width:13rem; margin: 6px 4px;" min="1900" max="2025">
+        `;
+
+        // Confirm button
+        const confirmPlusOneBtn = document.createElement("button");
+        confirmPlusOneBtn.type = "button";
+        confirmPlusOneBtn.textContent = "Confirm Plus One";
+        confirmPlusOneBtn.classList.add("confirm-add-btn");
+
+        // Confirmed display row (shown after confirm)
+        const confirmedRow = document.createElement("div");
+        confirmedRow.classList.add("plus-one-confirmed");
+        confirmedRow.style.display = "none";
+
+        plusOneArea.appendChild(plusOneFields);
+        plusOneArea.appendChild(confirmPlusOneBtn);
+        plusOneArea.appendChild(confirmedRow);
+
+        // ── PRE-FILL if previously saved plus one ──
+        // Look up who was previously added as plus one by this guest
+        const previousPlusOne = allGuests.find(g =>
+            g.addedBy === `${guest.first} ${guest.last}` &&
+            g.plusOne === "0"
+        );
+
+        if (guest.plusOne === "1" && previousPlusOne) {
             checkbox.checked = true;
-            plusOneFields.style.display = "block";
+            plusOneArea.style.display = "block";
+            plusOneFields.style.display = "none";
+            confirmPlusOneBtn.style.display = "none";
+
+            // Show confirmed row with name + edit button
+            showConfirmedPlusOne(
+                confirmedRow, plusOneFields, confirmPlusOneBtn,
+                previousPlusOne.first, previousPlusOne.last,
+                previousPlusOne.birthYear || "",
+                previousPlusOne.response || ""
+            );
         }
 
+        // ── CHECKBOX CHANGE ──
         checkbox.addEventListener("change", () => {
-            plusOneFields.style.display = checkbox.checked ? "block" : "none";
-            if (!checkbox.checked) plusOneRSVP.innerHTML = "";
+            if (checkbox.checked) {
+                plusOneArea.style.display = "block";
+                // If we already have a confirmed plus one, show them
+                if (confirmedRow.dataset.confirmed === "true") {
+                    plusOneFields.style.display = "none";
+                    confirmPlusOneBtn.style.display = "none";
+                    confirmedRow.style.display = "flex";
+                } else {
+                    plusOneFields.style.display = "flex";
+                    confirmPlusOneBtn.style.display = "inline-block";
+                    confirmedRow.style.display = "none";
+                }
+            } else {
+                plusOneArea.style.display = "none";
+            }
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         });
 
-        // When both name fields filled, check if they exist and render inline row
-        const firstInput = plusOneFields.querySelector(".plus-one-first");
-        const lastInput = plusOneFields.querySelector(".plus-one-last");
+        // ── CONFIRM BUTTON ──
+        confirmPlusOneBtn.addEventListener("click", () => {
+            const firstVal = plusOneFields.querySelector(".plus-one-first").value.trim();
+            const lastVal = plusOneFields.querySelector(".plus-one-last").value.trim();
+            const yearVal = plusOneFields.querySelector(".plus-one-year").value.trim();
 
-        function checkAndRenderPlusOne() {
-            const first = firstInput.value.trim().toLowerCase();
-            const last = lastInput.value.trim().toLowerCase();
-            if (!first || !last) return;
+            if (!firstVal || !lastVal) {
+                showError("Please enter the plus one's first and last name.");
+                return;
+            }
 
-            plusOneRSVP.innerHTML = "";
-            const existing = allGuests.find(g => g.first === first && g.last === last);
-            const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
+            showConfirmedPlusOne(
+                confirmedRow, plusOneFields, confirmPlusOneBtn,
+                firstVal.toLowerCase(), lastVal.toLowerCase(),
+                yearVal,
+                ""
+            );
 
-            const row = createInlineRSVPRow({
-                id: `plusone-${first}-${last}`,
-                fullName: `${firstInput.value.trim()} ${lastInput.value.trim()}`,
-                existingResponse: existing?.response || "",
-                locked: hasResponded && existing.addedBy === "",  // locked only if they responded independently
-                addedByPrimary: true
-            });
-            plusOneRSVP.appendChild(row);
-        }
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+        });
+    }
 
-        lastInput.addEventListener("blur", checkAndRenderPlusOne);
+    // ── HELPER: show confirmed plus one row with edit button ──
+    function showConfirmedPlusOne(confirmedRow, plusOneFields, confirmPlusOneBtn, first, last, birthYear, existingResponse) {
+        confirmedRow.innerHTML = "";
+        confirmedRow.style.display = "flex";
+        confirmedRow.style.cssText = "display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;";
+        confirmedRow.dataset.confirmed = "true";
+        confirmedRow.dataset.first = first;
+        confirmedRow.dataset.last = last;
+        confirmedRow.dataset.birthYear = birthYear || "";
+
+        const fullName = `${first.charAt(0).toUpperCase() + first.slice(1)} ${last.charAt(0).toUpperCase() + last.slice(1)}`;
+
+        const nameEl = document.createElement("span");
+        nameEl.classList.add("inline-name");
+        nameEl.textContent = fullName;
+
+        // Inline accept/decline — auto-accept by default
+        const switchEl = document.createElement("div");
+        switchEl.classList.add("inline-switch");
+
+        const acceptEl = document.createElement("button");
+        acceptEl.type = "button";
+        acceptEl.textContent = "ACCEPT";
+        acceptEl.classList.add("inline-accept");
+
+        const declineEl = document.createElement("button");
+        declineEl.type = "button";
+        declineEl.textContent = "DECLINE";
+        declineEl.classList.add("inline-decline");
+
+        // Default to accept
+        const initialResponse = existingResponse || "yes";
+        if (initialResponse === "yes") acceptEl.classList.add("active");
+        if (initialResponse === "no") declineEl.classList.add("active");
+        confirmedRow.dataset.response = initialResponse;
+
+        acceptEl.addEventListener("click", () => {
+            acceptEl.classList.add("active");
+            declineEl.classList.remove("active");
+            confirmedRow.dataset.response = "yes";
+        });
+        declineEl.addEventListener("click", () => {
+            declineEl.classList.add("active");
+            acceptEl.classList.remove("active");
+            confirmedRow.dataset.response = "no";
+        });
+
+        switchEl.appendChild(acceptEl);
+        switchEl.appendChild(declineEl);
+
+        // Edit button
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.innerHTML = "✏️";
+        editBtn.classList.add("remove-member-btn");
+        editBtn.title = "Edit plus one name";
+        editBtn.addEventListener("click", () => {
+            plusOneFields.querySelector(".plus-one-first").value =
+                first.charAt(0).toUpperCase() + first.slice(1);
+            plusOneFields.querySelector(".plus-one-last").value =
+                last.charAt(0).toUpperCase() + last.slice(1);
+            if (plusOneFields.querySelector(".plus-one-year")) {
+                plusOneFields.querySelector(".plus-one-year").value = birthYear || "";
+            }
+            plusOneFields.style.display = "flex";
+            confirmPlusOneBtn.style.display = "inline-block";
+            confirmedRow.style.display = "none";
+            confirmedRow.dataset.confirmed = "false";
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+        });
+
+        confirmedRow.appendChild(nameEl);
+        confirmedRow.appendChild(switchEl);
+        confirmedRow.appendChild(editBtn);
+
+        plusOneFields.style.display = "none";
+        confirmPlusOneBtn.style.display = "none";
     }
 
     // ── FAMILY SECTION ────────────────────────────────────────────
     function renderFamilySection(guest, allGuests) {
         const existing = document.querySelector(".family-list");
         if (existing) existing.remove();
+
+        // Hide family section entirely if guest is a plus one
+        if (guest.plusOne === "0") return;
 
         const familyList = document.createElement("div");
         familyList.classList.add("family-list");
@@ -390,6 +524,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
             const respondedIndependently = hasResponded && !existing.addedBy;
             const fullName = `${firstVal}${middleVal ? " " + middleVal : ""} ${lastVal}`.trim();
+
+            // Check if this name has already been added in this session
+            const alreadyAdded = document.querySelectorAll(".family-list .inline-rsvp-row");
+            const isDuplicate = Array.from(alreadyAdded).some(r =>
+                r.dataset.first === first && r.dataset.last === last
+            );
+
+            if (isDuplicate) {
+                // Show birth year field to differentiate
+                let yearField = addFields.querySelector(".fam-year");
+                if (!yearField) {
+                    yearField = document.createElement("input");
+                    yearField.type = "number";
+                    yearField.classList.add("text-input", "fam-year");
+                    yearField.placeholder = "Birth Year (to differentiate)";
+                    yearField.style.cssText = "width:12rem; margin: 4px;";
+                    yearField.min = "1900";
+                    yearField.max = "2025";
+                    addFields.appendChild(yearField);
+                    stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+                }
+                birthYear = yearField.value.trim();
+                if (!birthYear) {
+                    showError("You've already added someone with this name. Please enter their birth year to differentiate.");
+                    return;
+                }
+            }
 
             const row = createInlineRSVPRow({
                 id: `family-new-${first}-${last}-${Date.now()}`,
@@ -529,10 +690,25 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (matches.length > 1) {
                 found = matches.find(g => g.birthYear === birthYear);
                 if (!found) {
-                    showError("Birth year did not match any record. Please try again or contact the couple.");
-                    findButton.textContent = "FIND YOUR INVITATION";
-                    findButton.disabled = false;
-                    return;
+                    // Birth year doesn't match any existing record — treat as new guest
+                    const parts = first.split(" ");
+                    const firstOnly = parts[0];
+                    const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+                    await postToSheet({
+                        action: "createGuest",
+                        first: firstOnly,
+                        middle: middleOnly,
+                        last,
+                        birthYear
+                    });
+                    allGuests = await fetchGuests();
+                    found = allGuests.find(g =>
+                        g.first === firstOnly && g.last === last && g.birthYear === birthYear
+                    );
+                    if (!found) found = {
+                        first: firstOnly, middle: middleOnly, last,
+                        familyGroup: "", plusOne: "", response: "", email: "", birthYear
+                    };
                 }
 
             } else {
@@ -634,23 +810,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Plus-one handling
         const plusOneCheckbox = document.getElementById("plus-one");
-        if (plusOneCheckbox && plusOneCheckbox.checked) {
-            const poFirst = document.querySelector(".plus-one-first")?.value.trim().toLowerCase();
-            const poLast = document.querySelector(".plus-one-last")?.value.trim().toLowerCase();
-            const poRow = document.querySelector(".plus-one-rsvp .inline-rsvp-row");
-            const poResponse = poRow?.dataset.response || "";
+        const confirmedRow = document.querySelector(".plus-one-confirmed");
+
+        if (plusOneCheckbox && !plusOneCheckbox.checked) {
+            // Unchecked — if there was a previous plus one, remove them
+            const previousPlusOne = allGuests.find(g =>
+                g.addedBy === `${currentGuest.first} ${currentGuest.last}` &&
+                g.plusOne === "0"
+            );
+            if (previousPlusOne) {
+                await postToSheet({
+                    action: "removePlusOne",
+                    first: previousPlusOne.first,
+                    last: previousPlusOne.last,
+                    birthYear: previousPlusOne.birthYear || ""
+                });
+            }
+            await postToSheet({
+                first: currentGuest.first,
+                last: currentGuest.last,
+                plusOne: ""
+            });
+
+        } else if (plusOneCheckbox && plusOneCheckbox.checked && confirmedRow && confirmedRow.dataset.confirmed === "true") {
+            const poFirst = confirmedRow.dataset.first;
+            const poLast = confirmedRow.dataset.last;
+            const poBirthYear = confirmedRow.dataset.birthYear || "";
+            const poResponse = confirmedRow.dataset.response || "yes";
             const poIsNew = !allGuests.find(g => g.first === poFirst && g.last === poLast);
 
             if (poFirst && poLast) {
                 if (poIsNew) {
                     await postToSheet({
                         action: "createGuest",
-                        first: poFirst, last: poLast,
+                        first: poFirst,
+                        last: poLast,
+                        birthYear: poBirthYear,
+                        plusOne: "0",
                         addedBy: `${currentGuest.first} ${currentGuest.last}`
+                    });
+                } else {
+                    await postToSheet({
+                        first: poFirst,
+                        last: poLast,
+                        birthYear: poBirthYear,
+                        plusOne: "0"
                     });
                 }
                 if (poResponse) {
-                    await postToSheet({ first: poFirst, last: poLast, response: poResponse });
+                    await postToSheet({ first: poFirst, last: poLast, birthYear: poBirthYear, response: poResponse });
                 }
                 await postToSheet({
                     first: currentGuest.first,

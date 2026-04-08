@@ -97,11 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorEl) errorEl.remove();
     }
 
-    // ── BIRTH YEAR PROMPT ─────────────────────────────────────────
-    // Shown inline on step 1 when duplicate names are found
+    // ── BIRTH YEAR PROMPT (step 1) ────────────────────────────────
     function showBirthYearPrompt() {
         const existing = document.querySelector(".birth-year-prompt");
-        if (existing) return; // already showing
+        if (existing) return;
 
         const wrapper = document.createElement("div");
         wrapper.classList.add("birth-year-prompt");
@@ -109,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="color: rgb(245,245,220); margin: 10px 0 4px; font-size: 0.95rem;">
                 Please enter your birth year to continue.
             </p>
-            <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)" 
+            <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)"
                 min="1900" max="2025" style="width:14rem;">
         `;
         const formControl = document.querySelector(".form-control");
@@ -117,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
     }
 
-    // ── INLINE RSVP ROW (for plus-one and family members) ─────────
+    // ── INLINE RSVP ROW ───────────────────────────────────────────
     function createInlineRSVPRow({ id, fullName, existingResponse, locked, addedByPrimary }) {
         const wrapper = document.createElement("div");
         wrapper.classList.add("inline-rsvp-row");
@@ -144,12 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         switchEl.appendChild(declineEl);
 
         if (locked) {
-            // Already responded independently — show status, no interaction
             acceptEl.disabled = true;
             declineEl.disabled = true;
             if (existingResponse === "yes") acceptEl.classList.add("active");
             if (existingResponse === "no") declineEl.classList.add("active");
-
             const lockedNote = document.createElement("span");
             lockedNote.classList.add("locked-note");
             lockedNote.textContent = "Already responded";
@@ -157,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.appendChild(switchEl);
             wrapper.appendChild(lockedNote);
         } else {
-            // Pre-fill if previously set by proxy
             if (existingResponse === "yes") acceptEl.classList.add("active");
             if (existingResponse === "no") declineEl.classList.add("active");
 
@@ -172,16 +168,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 wrapper.dataset.response = "no";
             });
 
-            // Set initial dataset value
             wrapper.dataset.response = existingResponse || "";
 
-            // Remove button (only for newly added members, not existing ones)
-            if (!existingResponse && addedByPrimary) {
+            if (addedByPrimary) {
                 const removeBtn = document.createElement("button");
                 removeBtn.type = "button";
                 removeBtn.textContent = "✕";
                 removeBtn.classList.add("remove-member-btn");
-                removeBtn.addEventListener("click", () => wrapper.remove());
+                removeBtn.addEventListener("click", () => {
+                    wrapper.remove();
+                    stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+                });
                 wrapper.appendChild(nameEl);
                 wrapper.appendChild(switchEl);
                 wrapper.appendChild(removeBtn);
@@ -199,19 +196,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector(".check-container");
         container.innerHTML = "";
 
-        // Remove any existing added-by notice
         const existingNotice = document.querySelector(".plusone-notice");
         if (existingNotice) existingNotice.remove();
 
-        // If guest is a plus one themselves — show notice, hide section
         if (guest.plusOne === "0") {
             container.style.display = "none";
             if (guest.addedBy) {
                 const notice = document.createElement("p");
                 notice.classList.add("plusone-notice");
                 notice.style.cssText = "color: rgb(187,134,56); font-size: 0.95rem; margin-top: 10px; font-style: italic;";
-                // Capitalize added-by name
-                const addedByName = guest.addedBy.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+                const addedByName = guest.addedBy.split(" ")
+                    .map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
                 notice.textContent = `You have been added as a plus one by ${addedByName}.`;
                 container.insertAdjacentElement("afterend", notice);
             }
@@ -220,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.style.display = "block";
 
-        // ── CHECKBOX ──
+        // Checkbox
         const checkWrapper = document.createElement("p");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -233,28 +228,26 @@ document.addEventListener('DOMContentLoaded', () => {
         checkWrapper.appendChild(label);
         container.appendChild(checkWrapper);
 
-        // ── PLUS ONE FIELDS AREA ──
+        // Plus one area
         const plusOneArea = document.createElement("div");
         plusOneArea.classList.add("plus-one-area");
         plusOneArea.style.display = "none";
         container.appendChild(plusOneArea);
 
-        // Name input fields
+        // Name + year fields
         const plusOneFields = document.createElement("div");
         plusOneFields.classList.add("plus-one-fields");
         plusOneFields.innerHTML = `
             <input type="text" class="text-input plus-one-first" placeholder="Plus One First Name" style="width:13rem; margin: 6px 4px;">
             <input type="text" class="text-input plus-one-last" placeholder="Plus One Last Name" style="width:13rem; margin: 6px 4px;">
-            <input type="number" class="text-input plus-one-year" placeholder="Birth Year (if needed)" style="width:13rem; margin: 6px 4px;" min="1900" max="2025">
+            <input type="number" class="text-input plus-one-year" placeholder="Plus One Birth Year" style="width:13rem; margin: 6px 4px;" min="1900" max="2025">
         `;
 
-        // Confirm button
         const confirmPlusOneBtn = document.createElement("button");
         confirmPlusOneBtn.type = "button";
         confirmPlusOneBtn.textContent = "Confirm Plus One";
         confirmPlusOneBtn.classList.add("confirm-add-btn");
 
-        // Confirmed display row (shown after confirm)
         const confirmedRow = document.createElement("div");
         confirmedRow.classList.add("plus-one-confirmed");
         confirmedRow.style.display = "none";
@@ -263,20 +256,14 @@ document.addEventListener('DOMContentLoaded', () => {
         plusOneArea.appendChild(confirmPlusOneBtn);
         plusOneArea.appendChild(confirmedRow);
 
-        // ── PRE-FILL if previously saved plus one ──
-        // Look up who was previously added as plus one by this guest
+        // Pre-fill if previously saved
         const previousPlusOne = allGuests.find(g =>
-            g.addedBy === `${guest.first} ${guest.last}` &&
-            g.plusOne === "0"
+            g.addedBy === `${guest.first} ${guest.last}` && g.plusOne === "0"
         );
 
         if (guest.plusOne === "1" && previousPlusOne) {
             checkbox.checked = true;
             plusOneArea.style.display = "block";
-            plusOneFields.style.display = "none";
-            confirmPlusOneBtn.style.display = "none";
-
-            // Show confirmed row with name + edit button
             showConfirmedPlusOne(
                 confirmedRow, plusOneFields, confirmPlusOneBtn,
                 previousPlusOne.first, previousPlusOne.last,
@@ -285,11 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
-        // ── CHECKBOX CHANGE ──
+        // Checkbox change
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 plusOneArea.style.display = "block";
-                // If we already have a confirmed plus one, show them
                 if (confirmedRow.dataset.confirmed === "true") {
                     plusOneFields.style.display = "none";
                     confirmPlusOneBtn.style.display = "none";
@@ -305,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         });
 
-        // ── CONFIRM BUTTON ──
+        // Confirm button
         confirmPlusOneBtn.addEventListener("click", () => {
             const firstVal = plusOneFields.querySelector(".plus-one-first").value.trim();
             const lastVal = plusOneFields.querySelector(".plus-one-last").value.trim();
@@ -315,22 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError("Please enter the plus one's first and last name.");
                 return;
             }
+            if (!yearVal || yearVal.length < 4) {
+                showError("Please enter the plus one's birth year.");
+                return;
+            }
 
             showConfirmedPlusOne(
                 confirmedRow, plusOneFields, confirmPlusOneBtn,
                 firstVal.toLowerCase(), lastVal.toLowerCase(),
-                yearVal,
-                ""
+                yearVal, ""
             );
 
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         });
     }
 
-    // ── HELPER: show confirmed plus one row with edit button ──
+    // ── CONFIRMED PLUS ONE ROW ────────────────────────────────────
     function showConfirmedPlusOne(confirmedRow, plusOneFields, confirmPlusOneBtn, first, last, birthYear, existingResponse) {
         confirmedRow.innerHTML = "";
-        confirmedRow.style.display = "flex";
         confirmedRow.style.cssText = "display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;";
         confirmedRow.dataset.confirmed = "true";
         confirmedRow.dataset.first = first;
@@ -343,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
         nameEl.classList.add("inline-name");
         nameEl.textContent = fullName;
 
-        // Inline accept/decline — auto-accept by default
         const switchEl = document.createElement("div");
         switchEl.classList.add("inline-switch");
 
@@ -357,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
         declineEl.textContent = "DECLINE";
         declineEl.classList.add("inline-decline");
 
-        // Default to accept
         const initialResponse = existingResponse || "yes";
         if (initialResponse === "yes") acceptEl.classList.add("active");
         if (initialResponse === "no") declineEl.classList.add("active");
@@ -377,12 +363,11 @@ document.addEventListener('DOMContentLoaded', () => {
         switchEl.appendChild(acceptEl);
         switchEl.appendChild(declineEl);
 
-        // Edit button
         const editBtn = document.createElement("button");
         editBtn.type = "button";
         editBtn.innerHTML = "✏️";
         editBtn.classList.add("remove-member-btn");
-        editBtn.title = "Edit plus one name";
+        editBtn.title = "Edit plus one";
         editBtn.addEventListener("click", () => {
             plusOneFields.querySelector(".plus-one-first").value =
                 first.charAt(0).toUpperCase() + first.slice(1);
@@ -411,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const existing = document.querySelector(".family-list");
         if (existing) existing.remove();
 
-        // Hide family section entirely if guest is a plus one
         if (guest.plusOne === "0") return;
 
         const familyList = document.createElement("div");
@@ -422,19 +406,16 @@ document.addEventListener('DOMContentLoaded', () => {
         heading.textContent = "RSVP for your family";
         familyList.appendChild(heading);
 
-        // Show existing family members from sheet (same family-group)
         if (guest.familyGroup) {
             const familyMembers = allGuests.filter(g =>
                 g.familyGroup &&
                 g.familyGroup === guest.familyGroup &&
                 !(g.first === guest.first && g.last === guest.last)
             );
-
             familyMembers.forEach(member => {
                 const hasResponded = member.response === "yes" || member.response === "no";
                 const respondedIndependently = hasResponded && !member.addedBy;
                 const fullName = `${member.first} ${member.middle || ""} ${member.last}`.trim();
-
                 const row = createInlineRSVPRow({
                     id: `family-${member.first}-${member.last}`,
                     fullName,
@@ -457,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" class="text-input fam-first" placeholder="First Name" style="width:12rem; margin: 4px;">
             <input type="text" class="text-input fam-middle" placeholder="Middle Name (optional)" style="width:12rem; margin: 4px;">
             <input type="text" class="text-input fam-last" placeholder="Last Name" style="width:12rem; margin: 4px;">
+            <input type="number" class="text-input fam-year" placeholder="Birth Year (required)" style="width:12rem; margin: 4px;" min="1900" max="2025">
         `;
 
         const addBtn = document.createElement("button");
@@ -490,67 +472,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Check if already in system
+            const yearField = addFields.querySelector(".fam-year");
+            const birthYearVal = yearField ? yearField.value.trim() : "";
+            if (!birthYearVal || birthYearVal.length < 4) {
+                showError("Please enter the family member's birth year.");
+                return;
+            }
+
+            // Check if already added in this session
+            const alreadyAdded = document.querySelectorAll(".family-list .inline-rsvp-row");
+            const isDuplicate = Array.from(alreadyAdded).some(r =>
+                r.dataset.first === first && r.dataset.last === last
+            );
+            if (isDuplicate && !birthYearVal) {
+                showError("You've already added someone with this name. Please enter their birth year to differentiate.");
+                return;
+            }
+
+            // Check if in system
             const existingMatches = allGuests.filter(g => g.first === first && g.last === last);
             let existing = null;
-            let birthYear = "";
+            let birthYear = birthYearVal;
 
             if (existingMatches.length === 1) {
-                existing = existingMatches[0];
-                birthYear = existing.birthYear || "";
-
+                existing = existingMatches[0].birthYear === birthYearVal ? existingMatches[0] : null;
             } else if (existingMatches.length > 1) {
-                // Show birth year field if not already shown
-                let yearField = addFields.querySelector(".fam-year");
-                if (!yearField) {
-                    yearField = document.createElement("input");
-                    yearField.type = "number";
-                    yearField.classList.add("text-input", "fam-year");
-                    yearField.placeholder = "Birth Year (required)";
-                    yearField.style.cssText = "width:12rem; margin: 4px;";
-                    yearField.min = "1900";
-                    yearField.max = "2025";
-                    addFields.appendChild(yearField);
-                    stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
-                }
-                birthYear = yearField.value.trim();
-                if (!birthYear) {
-                    showError("Multiple people share this name. Please enter their birth year.");
-                    return;
-                }
-                existing = existingMatches.find(g => g.birthYear === birthYear);
+                existing = existingMatches.find(g => g.birthYear === birthYearVal);
             }
 
             const hasResponded = existing && (existing.response === "yes" || existing.response === "no");
             const respondedIndependently = hasResponded && !existing.addedBy;
             const fullName = `${firstVal}${middleVal ? " " + middleVal : ""} ${lastVal}`.trim();
-
-            // Check if this name has already been added in this session
-            const alreadyAdded = document.querySelectorAll(".family-list .inline-rsvp-row");
-            const isDuplicate = Array.from(alreadyAdded).some(r =>
-                r.dataset.first === first && r.dataset.last === last
-            );
-
-            if (isDuplicate) {
-                // Show birth year field to differentiate
-                let yearField = addFields.querySelector(".fam-year");
-                if (!yearField) {
-                    yearField = document.createElement("input");
-                    yearField.type = "number";
-                    yearField.classList.add("text-input", "fam-year");
-                    yearField.placeholder = "Birth Year (to differentiate)";
-                    yearField.style.cssText = "width:12rem; margin: 4px;";
-                    yearField.min = "1900";
-                    yearField.max = "2025";
-                    addFields.appendChild(yearField);
-                    stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
-                }
-                birthYear = yearField.value.trim();
-                if (!birthYear) {
-                    showError("You've already added someone with this name. Please enter their birth year to differentiate.");
-                    return;
-                }
-            }
 
             const row = createInlineRSVPRow({
                 id: `family-new-${first}-${last}-${Date.now()}`,
@@ -560,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 addedByPrimary: true
             });
 
-            // Store data for submission
             row.dataset.first = first;
             row.dataset.middle = middle;
             row.dataset.last = last;
@@ -568,11 +519,9 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.isNew = existing ? "false" : "true";
 
             familyList.insertBefore(row, addSection);
-
-            // Recalculate height
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
 
-            // Reset fields
+            // Reset
             addFields.querySelectorAll("input").forEach(i => i.value = "");
             addFields.style.display = "none";
             confirmAddBtn.style.display = "none";
@@ -602,17 +551,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Check if birth year prompt is already showing and filled
         const existingYearInput = document.querySelector(".birth-year-input");
         const birthYear = existingYearInput ? existingYearInput.value.trim() : "";
 
-        // If prompt not shown yet, show it and stop — wait for user to fill and re-click
         if (!existingYearInput) {
             showBirthYearPrompt();
             return;
         }
 
-        // If prompt is showing but not filled
         if (!birthYear || birthYear.length < 4) {
             showError("Please enter your birth year to continue.");
             return;
@@ -637,8 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let found = null;
 
             if (matches.length === 0) {
-                // Check if someone exists with same name but no middle name recorded
-                // and the first field contains two words (first + middle)
+                // Check for partial match — same first+last+year but no middle on file
                 const parts = first.split(" ");
                 if (parts.length >= 2) {
                     const firstOnly = parts[0];
@@ -650,7 +595,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         g.birthYear === birthYear
                     );
                     if (partialMatch) {
-                        // Update their middle name in sheet then use them
                         await postToSheet({
                             action: "updateMiddleName",
                             first: firstOnly,
@@ -666,7 +610,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (!found) {
-                    // Genuinely new guest
                     const parts = first.split(" ");
                     const firstOnly = parts[0];
                     const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
@@ -690,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (matches.length > 1) {
                 found = matches.find(g => g.birthYear === birthYear);
                 if (!found) {
-                    // Birth year doesn't match any existing record — treat as new guest
+                    // Different year — new guest
                     const parts = first.split(" ");
                     const firstOnly = parts[0];
                     const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
@@ -712,16 +655,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             } else {
-                // Single match — verify birth year, or just accept if no birth year on file
                 found = matches[0];
                 if (found.birthYear && found.birthYear !== birthYear) {
-                    showError("Birth year did not match. Please try again or contact the couple.");
-                    findButton.textContent = "FIND YOUR INVITATION";
-                    findButton.disabled = false;
-                    return;
-                }
-                // If no birth year on file yet, save it
-                if (!found.birthYear) {
+                    // Same name, different year — new guest
+                    const parts = first.split(" ");
+                    const firstOnly = parts[0];
+                    const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+                    await postToSheet({
+                        action: "createGuest",
+                        first: firstOnly,
+                        middle: middleOnly,
+                        last,
+                        birthYear
+                    });
+                    allGuests = await fetchGuests();
+                    found = allGuests.find(g =>
+                        g.first === firstOnly && g.last === last && g.birthYear === birthYear
+                    );
+                    if (!found) found = {
+                        first: firstOnly, middle: middleOnly, last,
+                        familyGroup: "", plusOne: "", response: "", email: "", birthYear
+                    };
+                } else if (!found.birthYear) {
                     await postToSheet({
                         action: "saveBirthYear",
                         first: found.first,
@@ -774,11 +729,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Declare once, reuse throughout
+        const familyRows = document.querySelectorAll(".family-list .inline-rsvp-row");
+        const confirmedRow = document.querySelector(".plus-one-confirmed");
+        const plusOneCheckbox = document.getElementById("plus-one");
+
+        // Validate family rows
+        for (const row of familyRows) {
+            if (!row.dataset.locked && !row.dataset.response) {
+                showError("Please select Accept or Decline for all family members.");
+                return;
+            }
+        }
+
+        // Validate plus one
+        if (confirmedRow && confirmedRow.dataset.confirmed === "true" && !confirmedRow.dataset.response) {
+            showError("Please select Accept or Decline for your plus one.");
+            return;
+        }
+
         continueButton.textContent = "Saving...";
         continueButton.disabled = true;
 
-        // Collect all family rows
-        const familyRows = document.querySelectorAll(".family-list .inline-rsvp-row");
+        // Family rows
         const membersForGroup = [{ first: currentGuest.first, last: currentGuest.last }];
 
         for (const row of familyRows) {
@@ -791,7 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!first || !last) continue;
 
-            // Create new guest row if they weren't in the system
             if (isNew) {
                 await postToSheet({
                     action: "createGuest",
@@ -800,7 +772,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Update their response if set
             if (response) {
                 await postToSheet({ first, last, birthYear, response });
             }
@@ -808,15 +779,10 @@ document.addEventListener('DOMContentLoaded', () => {
             membersForGroup.push({ first, last });
         }
 
-        // Plus-one handling
-        const plusOneCheckbox = document.getElementById("plus-one");
-        const confirmedRow = document.querySelector(".plus-one-confirmed");
-
+        // Plus one
         if (plusOneCheckbox && !plusOneCheckbox.checked) {
-            // Unchecked — if there was a previous plus one, remove them
             const previousPlusOne = allGuests.find(g =>
-                g.addedBy === `${currentGuest.first} ${currentGuest.last}` &&
-                g.plusOne === "0"
+                g.addedBy === `${currentGuest.first} ${currentGuest.last}` && g.plusOne === "0"
             );
             if (previousPlusOne) {
                 await postToSheet({
@@ -829,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await postToSheet({
                 first: currentGuest.first,
                 last: currentGuest.last,
+                birthYear: currentGuest.birthYear || "",
                 plusOne: ""
             });
 
@@ -863,12 +830,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 await postToSheet({
                     first: currentGuest.first,
                     last: currentGuest.last,
+                    birthYear: currentGuest.birthYear || "",
                     plusOne: "1"
                 });
             }
         }
 
-        // Link family group if there are members
+        // Link family group
         if (membersForGroup.length > 1) {
             await postToSheet({ action: "linkFamilyGroup", members: membersForGroup });
         }
@@ -884,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgress();
 
         setTimeout(() => {
-            stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
         }, 50);
     });
 
@@ -923,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentStep++;
             updateProgress();
             setTimeout(() => {
-                stepsContainer.style.height = steps[currentStep].offsetHeight + "px";
+                stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
             }, 50);
 
         } catch (err) {
@@ -945,6 +913,15 @@ document.addEventListener('DOMContentLoaded', () => {
         addRemoveActive(acceptBtn, declineBtn);
         responseSelected = true;
         postToSheet({ first: currentGuest?.first, last: currentGuest?.last, response: "no" });
+
+        // Uncheck plus one if declining
+        const plusOneCheckbox = document.getElementById("plus-one");
+        if (plusOneCheckbox && plusOneCheckbox.checked) {
+            plusOneCheckbox.checked = false;
+            const plusOneArea = document.querySelector(".plus-one-area");
+            if (plusOneArea) plusOneArea.style.display = "none";
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+        }
     };
 
     // ── TAB HANDLING ──────────────────────────────────────────────

@@ -97,6 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorEl) errorEl.remove();
     }
 
+    function isValidBirthYear(year) {
+        const y = parseInt(year);
+        const currentYear = new Date().getFullYear();
+        return !isNaN(y) && y >= 1900 && y <= currentYear;
+    }
+
     // ── BIRTH YEAR PROMPT (step 1) ────────────────────────────────
     function showBirthYearPrompt() {
         const existing = document.querySelector(".birth-year-prompt");
@@ -114,6 +120,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const formControl = document.querySelector(".form-control");
         formControl.insertAdjacentElement("afterend", wrapper);
         stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+    }
+
+    // ── DUPLICATE NAME WARNING ────────────────────────────────────
+    function showDuplicateWarning() {
+        return new Promise((resolve) => {
+            const existing = document.querySelector(".duplicate-warning");
+            if (existing) existing.remove();
+
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("duplicate-warning");
+            wrapper.innerHTML = `
+                <p style="color: rgb(245,245,220); margin: 10px 0 6px; font-size: 0.95rem;">
+                    We already have guests with this name on file. Are you sure you're a different person and not already registered?
+                </p>
+                <div style="display:flex; gap:10px; justify-content:center; margin-top:6px;">
+                    <button type="button" class="dup-yes-btn confirm-add-btn">Yes, I'm different</button>
+                    <button type="button" class="dup-no-btn add-family-btn">Go back</button>
+                </div>
+            `;
+            const formControl = document.querySelector(".form-control");
+            formControl.insertAdjacentElement("afterend", wrapper);
+            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+
+            wrapper.querySelector(".dup-yes-btn").addEventListener("click", () => {
+                wrapper.remove();
+                stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+                resolve(true);
+            });
+            wrapper.querySelector(".dup-no-btn").addEventListener("click", () => {
+                wrapper.remove();
+                stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+                resolve(false);
+            });
+        });
     }
 
     // ── INLINE RSVP ROW ───────────────────────────────────────────
@@ -308,8 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError("Please enter the plus one's first and last name.");
                 return;
             }
-            if (!yearVal || yearVal.length < 4) {
-                showError("Please enter the plus one's birth year.");
+            if (!yearVal || !isValidBirthYear(yearVal)) {
+                showError("Please enter a valid birth year for your plus one.");
                 return;
             }
 
@@ -488,8 +528,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const yearField = addFields.querySelector(".fam-year");
             const birthYearVal = yearField ? yearField.value.trim() : "";
-            if (!birthYearVal || birthYearVal.length < 4) {
-                showError("Please enter the family member's birth year.");
+            if (!birthYearVal || !isValidBirthYear(birthYearVal)) {
+                showError("Please enter a valid birth year for this family member.");
                 return;
             }
 
@@ -576,8 +616,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!birthYear || birthYear.length < 4) {
-            showError("To avoid duplicates, please enter your birth year to continue.");
+        if (!birthYear || !isValidBirthYear(birthYear)) {
+            showError("Please enter a valid birth year to continue.");
             return;
         }
 
@@ -588,14 +628,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const guests = await fetchGuests();
             allGuests = guests;
 
+            const parts = first.split(" ");
+            const firstOnly = parts[0];
+            const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+
             let matches = guests.filter(g => {
                 const fullFirst = `${g.first} ${g.middle}`.trim();
                 return (
                     g.first === first ||
                     g.middle === first ||
-                    fullFirst === first
+                    fullFirst === first ||
+                    // entered "first middle" — match against separate columns
+                    (parts.length >= 2 && g.first === firstOnly && g.last === last &&
+                        (!g.middle || g.middle === "" || g.middle === middleOnly))
                 ) && g.last === last;
             });
+
+            // Deduplicate in case a row matches multiple conditions
+            matches = [...new Map(matches.map(m => [m.first + m.last + m.birthYear, m])).values()];
 
             let found = null;
 
@@ -650,6 +700,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (matches.length > 1) {
                 found = matches.find(g => g.birthYear === birthYear);
                 if (!found) {
+                    if (matches.length >= 2) {
+                        const confirmed = await showDuplicateWarning();
+                        if (!confirmed) {
+                            showError("Please double check your name spelling and try again.");
+                            findButton.textContent = "FIND YOUR INVITATION";
+                            findButton.disabled = false;
+                            return;
+                        }
+                    }
                     // Different year — new guest
                     const parts = first.split(" ");
                     const firstOnly = parts[0];
@@ -674,10 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 found = matches[0];
                 if (found.birthYear && found.birthYear !== birthYear) {
-                    // Same name, different year — new guest
-                    const parts = first.split(" ");
-                    const firstOnly = parts[0];
-                    const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+                    // Different year — new guest
                     await postToSheet({
                         action: "createGuest",
                         first: firstOnly,
@@ -693,13 +749,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         first: firstOnly, middle: middleOnly, last,
                         familyGroup: "", plusOne: "", response: "", email: "", birthYear
                     };
-                } else if (!found.birthYear) {
-                    await postToSheet({
-                        action: "saveBirthYear",
-                        first: found.first,
-                        last: found.last,
-                        birthYear
-                    });
+                } else {
+                    // Save birth year if not on file
+                    if (!found.birthYear) {
+                        await postToSheet({
+                            action: "saveBirthYear",
+                            first: found.first,
+                            last: found.last,
+                            birthYear
+                        });
+                    }
+                    // Save middle name if not on file but was entered
+                    if (!found.middle && middleOnly) {
+                        await postToSheet({
+                            action: "updateMiddleName",
+                            first: found.first,
+                            last: found.last,
+                            middle: middleOnly,
+                            birthYear
+                        });
+                    }
+                    // Re-fetch to get updated record
+                    if (!found.birthYear || (!found.middle && middleOnly)) {
+                        allGuests = await fetchGuests();
+                        found = allGuests.find(g =>
+                            g.first === found.first && g.last === found.last && g.birthYear === birthYear
+                        ) || found;
+                    }
                 }
             }
 

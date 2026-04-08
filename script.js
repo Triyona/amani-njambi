@@ -100,32 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── BIRTH YEAR PROMPT ─────────────────────────────────────────
     // Shown inline on step 1 when duplicate names are found
     function showBirthYearPrompt() {
-        return new Promise((resolve) => {
-            // Remove any existing prompt
-            const existing = document.querySelector(".birth-year-prompt");
-            if (existing) existing.remove();
+        const existing = document.querySelector(".birth-year-prompt");
+        if (existing) return; // already showing
 
-            const wrapper = document.createElement("div");
-            wrapper.classList.add("birth-year-prompt");
-            wrapper.innerHTML = `
-                <p style="color: rgb(245,245,220); margin: 10px 0 4px; font-size: 0.95rem;">
-                    Multiple guests share this name. Please enter your birth year to continue.
-                </p>
-                <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)" 
-                    min="1900" max="2025" style="width:14rem;">
-            `;
-            const formControl = document.querySelector(".form-control");
-            formControl.insertAdjacentElement("afterend", wrapper);
-
-            // Resolve when user types a 4-digit year
-            const input = wrapper.querySelector(".birth-year-input");
-            // Trigger height recalculation after prompt is added
-            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
-
-            input.addEventListener("input", () => {
-                if (input.value.length === 4) resolve(input.value);
-            });
-        });
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("birth-year-prompt");
+        wrapper.innerHTML = `
+            <p style="color: rgb(245,245,220); margin: 10px 0 4px; font-size: 0.95rem;">
+                Please enter your birth year to continue.
+            </p>
+            <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)" 
+                min="1900" max="2025" style="width:14rem;">
+        `;
+        const formControl = document.querySelector(".form-control");
+        formControl.insertAdjacentElement("afterend", wrapper);
+        stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
     }
 
     // ── INLINE RSVP ROW (for plus-one and family members) ─────────
@@ -442,11 +431,29 @@ document.addEventListener('DOMContentLoaded', () => {
     findButton.addEventListener("click", async (e) => {
         e.preventDefault();
 
-        const first = document.getElementById("first").value.trim().toLowerCase();
-        const last = document.getElementById("last").value.trim().toLowerCase();
+        const firstRaw = document.getElementById("first").value.trim();
+        const lastRaw = document.getElementById("last").value.trim();
+        const first = firstRaw.toLowerCase();
+        const last = lastRaw.toLowerCase();
 
         if (!first || !last) {
             showError("Please enter your first/middle and last name.");
+            return;
+        }
+
+        // Check if birth year prompt is already showing and filled
+        const existingYearInput = document.querySelector(".birth-year-input");
+        const birthYear = existingYearInput ? existingYearInput.value.trim() : "";
+
+        // If prompt not shown yet, show it and stop — wait for user to fill and re-click
+        if (!existingYearInput) {
+            showBirthYearPrompt();
+            return;
+        }
+
+        // If prompt is showing but not filled
+        if (!birthYear || birthYear.length < 4) {
+            showError("Please enter your birth year to continue.");
             return;
         }
 
@@ -457,27 +464,69 @@ document.addEventListener('DOMContentLoaded', () => {
             const guests = await fetchGuests();
             allGuests = guests;
 
-            // Find matches by first+last (or first+middle+last)
             let matches = guests.filter(g => {
                 const fullFirst = `${g.first} ${g.middle}`.trim();
-                return (g.first === first || g.middle === first || fullFirst === first) && g.last === last;
+                return (
+                    g.first === first ||
+                    g.middle === first ||
+                    fullFirst === first
+                ) && g.last === last;
             });
 
             let found = null;
 
             if (matches.length === 0) {
-                // ── NEW GUEST ── create immediately, no birth year needed
-                await postToSheet({
-                    action: "createGuest",
-                    first, last
-                });
-                allGuests = await fetchGuests();
-                found = allGuests.find(g => g.first === first && g.last === last);
-                if (!found) found = { first, last, middle: "", familyGroup: "", plusOne: "", response: "", email: "", birthYear: "" };
+                // Check if someone exists with same name but no middle name recorded
+                // and the first field contains two words (first + middle)
+                const parts = first.split(" ");
+                if (parts.length >= 2) {
+                    const firstOnly = parts[0];
+                    const middleOnly = parts.slice(1).join(" ");
+                    const partialMatch = guests.find(g =>
+                        g.first === firstOnly &&
+                        g.last === last &&
+                        (!g.middle || g.middle === "") &&
+                        g.birthYear === birthYear
+                    );
+                    if (partialMatch) {
+                        // Update their middle name in sheet then use them
+                        await postToSheet({
+                            action: "updateMiddleName",
+                            first: firstOnly,
+                            last,
+                            middle: middleOnly,
+                            birthYear
+                        });
+                        allGuests = await fetchGuests();
+                        found = allGuests.find(g =>
+                            g.first === firstOnly && g.last === last && g.birthYear === birthYear
+                        );
+                    }
+                }
+
+                if (!found) {
+                    // Genuinely new guest
+                    const parts = first.split(" ");
+                    const firstOnly = parts[0];
+                    const middleOnly = parts.length >= 2 ? parts.slice(1).join(" ") : "";
+                    await postToSheet({
+                        action: "createGuest",
+                        first: firstOnly,
+                        middle: middleOnly,
+                        last,
+                        birthYear
+                    });
+                    allGuests = await fetchGuests();
+                    found = allGuests.find(g =>
+                        g.first === firstOnly && g.last === last && g.birthYear === birthYear
+                    );
+                    if (!found) found = {
+                        first: firstOnly, middle: middleOnly, last,
+                        familyGroup: "", plusOne: "", response: "", email: "", birthYear
+                    };
+                }
 
             } else if (matches.length > 1) {
-                // ── DUPLICATE NAME ──
-                const birthYear = await showBirthYearPrompt();
                 found = matches.find(g => g.birthYear === birthYear);
                 if (!found) {
                     showError("Birth year did not match any record. Please try again or contact the couple.");
@@ -487,16 +536,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             } else {
+                // Single match — verify birth year, or just accept if no birth year on file
                 found = matches[0];
+                if (found.birthYear && found.birthYear !== birthYear) {
+                    showError("Birth year did not match. Please try again or contact the couple.");
+                    findButton.textContent = "FIND YOUR INVITATION";
+                    findButton.disabled = false;
+                    return;
+                }
+                // If no birth year on file yet, save it
+                if (!found.birthYear) {
+                    await postToSheet({
+                        action: "saveBirthYear",
+                        first: found.first,
+                        last: found.last,
+                        birthYear
+                    });
+                }
             }
 
             currentGuest = found;
 
-            // Update guest name display
             document.querySelector(".guest-name").textContent =
                 `${found.first} ${found.middle || ""} ${found.last}`.trim();
 
-            // Pre-select accept/decline
             if (found.response === "yes") {
                 addRemoveActive(declineBtn, acceptBtn);
                 responseSelected = true;

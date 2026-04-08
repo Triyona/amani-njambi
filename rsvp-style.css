@@ -444,30 +444,35 @@ button {
     margin-top: 8px;
 }
 
-/* INLINE RSVP ROW (plus-one & family members) */
+/* INLINE RSVP ROW */
 .inline-rsvp-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
     margin: 8px 0;
     padding: 8px 10px;
     border-radius: 6px;
     background: rgba(245, 245, 220, 0.08);
-    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .inline-name {
     color: rgb(245, 245, 220);
     text-transform: capitalize;
     font-size: 1rem;
-    flex: 1;
-    min-width: 120px;
+    text-align: left;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .inline-switch {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .inline-switch button {
@@ -480,6 +485,7 @@ button {
     background: rgb(128, 0, 32);
     color: rgb(245, 245, 220);
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .inline-switch button.active {
@@ -498,6 +504,7 @@ button {
     color: rgb(187, 134, 56);
     font-style: italic;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .remove-member-btn {
@@ -510,6 +517,7 @@ button {
     color: rgba(245, 245, 220, 0.6);
     border-radius: 4px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .remove-member-btn:hover {
@@ -567,4 +575,22 @@ button {
     flex-direction: column;
     align-items: center;
     margin-top: 6px;
+}
+
+/* Fix left spacing on inline name */
+.inline-rsvp-row .inline-name {
+    text-align: left;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+/* Fix odd space below family rows */
+.family-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.add-family-section {
+    margin-top: 4px;
 }

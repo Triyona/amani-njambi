@@ -318,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── CONFIRMED PLUS ONE ROW ────────────────────────────────────
     function showConfirmedPlusOne(confirmedRow, plusOneFields, confirmPlusOneBtn, first, last, birthYear, existingResponse) {
-        confirmedRow.innerHTML = "";
-        confirmedRow.style.cssText = "display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;";
+        confirmedRow.style.cssText = "";
+        confirmedRow.classList.add("inline-rsvp-row");
         confirmedRow.dataset.confirmed = "true";
         confirmedRow.dataset.first = first;
         confirmedRow.dataset.last = last;
@@ -519,7 +519,10 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.isNew = existing ? "false" : "true";
 
             familyList.insertBefore(row, addSection);
-            stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+            // Force layout recalc after insert
+            requestAnimationFrame(() => {
+                stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
+            });
 
             // Reset
             addFields.querySelectorAll("input").forEach(i => i.value = "");

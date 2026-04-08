@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.classList.add("birth-year-prompt");
         wrapper.innerHTML = `
             <p style="color: rgb(245,245,220); margin: 10px 0 4px; font-size: 0.95rem;">
-                Please enter your birth year to continue.
+                To avoid duplicates, please enter your birth year to continue.
             </p>
             <input type="number" class="text-input birth-year-input" placeholder="Birth Year (e.g. 1990)"
                 min="1900" max="2025" style="width:14rem;">
@@ -211,6 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 notice.textContent = `You have been added as a plus one by ${addedByName}.`;
                 container.insertAdjacentElement("afterend", notice);
             }
+            return;
+        }
+
+        // Value "2" = family only, hide plus one
+        if (guest.plusOne === "2") {
+            container.style.display = "none";
             return;
         }
 
@@ -398,6 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existing) existing.remove();
 
         if (guest.plusOne === "0") return;
+        // Value "3" = plus one only, hide family section
+        if (guest.plusOne === "3") return;
 
         const familyList = document.createElement("div");
         familyList.classList.add("family-list");
@@ -569,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!birthYear || birthYear.length < 4) {
-            showError("Please enter your birth year to continue.");
+            showError("To avoid duplicates, please enter your birth year to continue.");
             return;
         }
 
@@ -744,23 +752,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const plusOneCheckbox = document.getElementById("plus-one");
 
         // Validate family rows
-        for (const row of familyRows) {
-            const isLocked = row.dataset.locked === "true";
-            const hasResponse = row.dataset.response === "yes" || row.dataset.response === "no";
-            const isExisting = row.dataset.isNew === "false";
+        // for (const row of familyRows) {
+        //     const isLocked = row.dataset.locked === "true";
+        //     const hasResponse = row.dataset.response === "yes" || row.dataset.response === "no";
+        //     const isExisting = row.dataset.isNew === "false";
 
-            // Skip locked rows and existing members who already have a response
-            if (isLocked) continue;
-            if (isExisting && hasResponse) continue;
+        //     // Skip locked rows and existing members who already have a response
+        //     if (isLocked) continue;
+        //     if (isExisting && hasResponse) continue;
 
-            // Only require response for new additions or existing members with no prior response
-            if (!hasResponse) {
-                showError("Please select Accept or Decline for all family members.");
-                continueButton.textContent = "CONTINUE";
-                continueButton.disabled = false;
-                return;
-            }
-        }
+        //     // Only require response for new additions or existing members with no prior response
+        //     if (!hasResponse) {
+        //         showError("Please select Accept or Decline for all family members.");
+        //         continueButton.textContent = "CONTINUE";
+        //         continueButton.disabled = false;
+        //         return;
+        //     }
+        // }
 
         // Validate plus one
         if (confirmedRow && confirmedRow.dataset.confirmed === "true" && !confirmedRow.dataset.response) {

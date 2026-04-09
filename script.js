@@ -1011,6 +1011,12 @@ document.addEventListener('DOMContentLoaded', () => {
         addRemoveActive(declineBtn, acceptBtn);
         responseSelected = true;
         postToSheet({ first: currentGuest?.first, last: currentGuest?.last, response: "yes" });
+
+        // Re-enable plus one if accepting
+        const plusOneCheckbox = document.getElementById("plus-one");
+        if (plusOneCheckbox) {
+            plusOneCheckbox.disabled = false;
+        }
     };
 
     declineBtn.onclick = () => {
@@ -1018,10 +1024,11 @@ document.addEventListener('DOMContentLoaded', () => {
         responseSelected = true;
         postToSheet({ first: currentGuest?.first, last: currentGuest?.last, response: "no" });
 
-        // Uncheck plus one if declining
+        // Uncheck and disable plus one if declining
         const plusOneCheckbox = document.getElementById("plus-one");
-        if (plusOneCheckbox && plusOneCheckbox.checked) {
+        if (plusOneCheckbox) {
             plusOneCheckbox.checked = false;
+            plusOneCheckbox.disabled = true;
             const plusOneArea = document.querySelector(".plus-one-area");
             if (plusOneArea) plusOneArea.style.display = "none";
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";

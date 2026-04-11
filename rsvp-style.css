@@ -5,6 +5,18 @@
     src: url(frunchy-sage.ttf);
 }
 
+/* ── GLOBAL OVERFLOW FIX ────────────────────────────────── */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+    /* Re-anchor centering to the true viewport width */
+    width: 100vw;
+    max-width: 100%;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -598,4 +610,186 @@ button {
 
 .add-family-section {
     margin-top: 4px;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+
+/* Mobile — up to 640px */
+@media (max-width: 640px) {
+
+    body {
+        height: auto;
+        min-height: 100vh;
+        background-color: rgb(128, 0, 32);
+        padding: 20px 0;
+        align-items: start;
+    }
+
+    .form-wizard {
+        background: transparent;
+        box-shadow: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 20px 16px;
+        margin: 0;
+        border-radius: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .steps-container {
+        overflow: hidden;
+        max-width: 100%;
+    }
+
+    h1 { font-size: 2.6rem; }
+
+    h2 {
+        font-size: 2.8rem;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    h3 { font-size: 1.3rem; }
+
+    p  { font-size: 1.1rem; }
+
+    /* Inputs fill full width */
+    .text-input {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin: 6px 0;
+    }
+
+    .step {
+        padding: 16px 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control {
+        width: 100%;
+        box-sizing: border-box;
+        align-items: stretch;
+    }
+
+    /* Stack name + accept/decline */
+    .form-respond {
+        flex-direction: column;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .switch-container {
+        width: 100%;
+        max-width: 280px;
+    }
+
+    /* Inline RSVP rows */
+    .inline-rsvp-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 10px 8px;
+        width: 100%;
+    }
+
+    .inline-switch {
+        justify-content: flex-start;
+    }
+
+    .inline-switch button {
+        width: 80px;
+        font-size: 0.75rem;
+    }
+
+    .locked-note {
+        text-align: left;
+    }
+
+    /* Plus one fields */
+    .plus-one-fields {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .plus-one-fields input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 4px 0 !important;
+    }
+
+    /* Family fields */
+    .add-family-fields {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .add-family-fields input {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 4px 0 !important;
+    }
+
+    /* Main buttons full width */
+    .find-btn,
+    .continue-btn,
+    .submit-btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Keep small buttons auto width */
+    .inline-switch button,
+    .remove-member-btn,
+    .add-family-btn,
+    .confirm-add-btn {
+        width: auto;
+    }
+
+    .progress-container li {
+        font-size: 0.72rem;
+        gap: 4px;
+    }
+
+    .rsvp-header i {
+        font-size: 2rem;
+    }
+}
+
+/* Very small — under 380px */
+@media (max-width: 380px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 2.2rem; }
+
+    .form-wizard {
+        padding: 16px 12px;
+    }
+
+    .switch-container {
+        max-width: 240px;
+    }
+
+    .inline-switch button {
+        width: 72px;
+        font-size: 0.7rem;
+    }
+
+    .progress-container li {
+        font-size: 0.6rem;
+    }
+}
+
+/* Tablet — 641px to 900px */
+@media (min-width: 641px) and (max-width: 900px) {
+    .form-wizard {
+        width: min(600px, 88%);
+    }
+}
+
+/* Desktop — above 900px */
+@media (min-width: 901px) {
+    .form-wizard {
+        width: min(600px, 75%);
+    }
 }

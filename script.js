@@ -353,14 +353,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Preserve existing response if editing
+            const existingResponse = confirmedRow.dataset.confirmed === "true"
+                ? confirmedRow.dataset.response || ""
+                : "";
+
+            // Clear the confirmed row before re-rendering
+            confirmedRow.innerHTML = "";
+            confirmedRow.dataset.confirmed = "false";
+
             showConfirmedPlusOne(
                 confirmedRow, plusOneFields, confirmPlusOneBtn,
                 firstVal.toLowerCase(), lastVal.toLowerCase(),
-                yearVal, ""
+                yearVal, existingResponse
             );
 
             stepsContainer.style.height = steps[currentStep].scrollHeight + "px";
-        });
+        }); 
     }
 
     // ── CONFIRMED PLUS ONE ROW ────────────────────────────────────

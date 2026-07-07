@@ -252,10 +252,16 @@ iframe {
 /*GIFT*/
 
 #gift {
-    background-color: rgb(128, 0, 32);
+    /* background-color: rgb(128, 0, 32); */
+    background-color: rgb(245, 245, 220);
+}
+
+#gift p {
+    color: rgb(128, 0, 32);
 }
 
 .gift-text {
+    color: rgb(128, 0, 32);
     text-align: center;
     display: flex;
     flex-direction: column;

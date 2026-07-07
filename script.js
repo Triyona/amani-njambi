@@ -353,6 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const existingPlusOne = allGuests.find(g => g.first === firstVal.toLowerCase() && g.last === lastVal.toLowerCase());
+            if (existingPlusOne && (existingPlusOne.response === "yes" || existingPlusOne.response === "no")) {
+                const responseText = existingPlusOne.response === "yes" ? "accepted" : "declined";
+                showError(`${firstVal} ${lastVal} has already RSVPd and ${responseText} their invitation.`);
+            }
+
             // Preserve existing response if editing
             const existingResponse = confirmedRow.dataset.confirmed === "true"
                 ? confirmedRow.dataset.response || ""
